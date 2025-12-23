@@ -161,9 +161,7 @@ No additional server configuration is required.
 
 11. AUTHOR
 
-Basani Ganesh
-B.Tech Computer Science & Engineering
-Aspiring Full-Stack Developer
+  Ganesh Basani 
 
 ---
 
