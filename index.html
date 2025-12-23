@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Workflow Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h1>AI-Driven Dynamic Workflow Generator</h1>
+    <p class="subtitle">Convert natural language into automated workflows</p>
+
+    <form method="POST">
+        <textarea name="process" placeholder="Describe your business process..." required></textarea>
+        <button type="submit">Generate Workflow</button>
+    </form>
+
+    {% if steps %}
+    <div class="results">
+        <h2>Generated Workflow Steps</h2>
+        {% for step in steps %}
+        <div class="card">
+            {{ loop.index }}. {{ step }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<footer>
+    Built by Basani Ganesh | AI Workflow Automation Project
+</footer>
+
+</body>
+</html>
