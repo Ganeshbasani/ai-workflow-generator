@@ -1,100 +1,71 @@
 def generate_workflow(text):
-    steps = []
-
     if not text or text.strip() == "":
         return ["Please enter a workflow description"]
 
+    steps = []
     sentences = text.replace("\n", ".").split(".")
-    step_count = 1
+    step_no = 1
 
     for sentence in sentences:
         s = sentence.lower().strip()
         if not s:
             continue
 
-        # -------- BUSINESS DOMAIN --------
-        if "customer" in s or "user" in s:
-            steps.append(f"Step {step_count}: Capture customer/user details")
-            step_count += 1
+        # ---------- EDUCATION DOMAIN ----------
+        if any(word in s for word in ["student", "admission", "course", "exam", "result"]):
+            if "admission" in s or "apply" in s:
+                steps.append(f"Step {step_no}: Process student admission")
+                step_no += 1
+            elif "course" in s or "enroll" in s:
+                steps.append(f"Step {step_no}: Enroll student into course")
+                step_no += 1
+            elif "exam" in s:
+                steps.append(f"Step {step_no}: Schedule examination")
+                step_no += 1
+            elif "result" in s or "grade" in s:
+                steps.append(f"Step {step_no}: Publish academic results")
+                step_no += 1
+            continue
 
-        if "order" in s or "purchase" in s:
-            steps.append(f"Step {step_count}: Process customer order")
-            step_count += 1
+        # ---------- IT DOMAIN ----------
+        if any(word in s for word in ["login", "register", "deploy", "server", "bug", "api"]):
+            if "register" in s or "signup" in s:
+                steps.append(f"Step {step_no}: Register new user")
+                step_no += 1
+            elif "login" in s:
+                steps.append(f"Step {step_no}: Authenticate user login")
+                step_no += 1
+            elif "deploy" in s:
+                steps.append(f"Step {step_no}: Deploy application")
+                step_no += 1
+            elif "bug" in s or "error" in s:
+                steps.append(f"Step {step_no}: Identify and fix software issue")
+                step_no += 1
+            continue
 
-        if "payment" in s or "transaction" in s:
-            steps.append(f"Step {step_count}: Validate and process payment")
-            step_count += 1
+        # ---------- BUSINESS DOMAIN ----------
+        if any(word in s for word in ["customer", "order", "payment", "invoice", "billing", "report"]):
+            if "order" in s or "purchase" in s:
+                steps.append(f"Step {step_no}: Process customer order")
+                step_no += 1
+            elif "payment" in s or "transaction" in s:
+                steps.append(f"Step {step_no}: Process payment")
+                step_no += 1
+            elif "invoice" in s or "billing" in s:
+                steps.append(f"Step {step_no}: Generate invoice")
+                step_no += 1
+            elif "report" in s:
+                steps.append(f"Step {step_no}: Generate business report")
+                step_no += 1
+            continue
 
-        if "invoice" in s or "billing" in s:
-            steps.append(f"Step {step_count}: Generate invoice")
-            step_count += 1
-
-        if "report" in s:
-            steps.append(f"Step {step_count}: Generate business report")
-            step_count += 1
-
-        # -------- IT / SOFTWARE DOMAIN --------
-        if "login" in s or "authenticate" in s:
-            steps.append(f"Step {step_count}: Authenticate user login")
-            step_count += 1
-
-        if "register" in s or "signup" in s:
-            steps.append(f"Step {step_count}: Register new user")
-            step_count += 1
-
-        if "deploy" in s:
-            steps.append(f"Step {step_count}: Deploy application")
-            step_count += 1
-
-        if "server" in s or "api" in s:
-            steps.append(f"Step {step_count}: Handle server/API request")
-            step_count += 1
-
-        if "bug" in s or "error" in s:
-            steps.append(f"Step {step_count}: Log and fix software issue")
-            step_count += 1
-
-        # -------- EDUCATION DOMAIN --------
-        if "student" in s:
-            steps.append(f"Step {step_count}: Capture student information")
-            step_count += 1
-
-        if "admission" in s or "enroll" in s:
-            steps.append(f"Step {step_count}: Process student admission")
-            step_count += 1
-
-        if "course" in s or "subject" in s:
-            steps.append(f"Step {step_count}: Assign course to student")
-            step_count += 1
-
-        if "exam" in s or "test" in s:
-            steps.append(f"Step {step_count}: Schedule examination")
-            step_count += 1
-
-        if "result" in s or "grade" in s:
-            steps.append(f"Step {step_count}: Publish academic results")
-            step_count += 1
-
-        # -------- COMMON ACTIONS --------
-        if "save" in s or "store" in s:
-            steps.append(f"Step {step_count}: Save data to database")
-            step_count += 1
-
-        if "email" in s:
-            steps.append(f"Step {step_count}: Send email notification")
-            step_count += 1
-
-        if "notify" in s:
-            steps.append(f"Step {step_count}: Send system notification")
-            step_count += 1
-
-        if "approve" in s:
-            steps.append(f"Step {step_count}: Approve request")
-            step_count += 1
-
-        if "reject" in s:
-            steps.append(f"Step {step_count}: Reject request")
-            step_count += 1
+        # ---------- COMMON ACTIONS ----------
+        if "email" in s or "notify" in s:
+            steps.append(f"Step {step_no}: Send notification")
+            step_no += 1
+        elif "save" in s or "store" in s:
+            steps.append(f"Step {step_no}: Save data to database")
+            step_no += 1
 
     if not steps:
         return ["No workflow steps detected"]
