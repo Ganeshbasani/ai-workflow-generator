@@ -1,73 +1,121 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+* {
+    box-sizing: border-box;
+}
 
 body {
-    font-family: 'Poppins', sans-serif;
-    background: #f4f6f8;
     margin: 0;
-    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
 }
 
-.container {
-    max-width: 800px;
-    margin: 60px auto;
-    background: white;
-    padding: 40px;
-    border-radius: 14px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+/* MAIN CONTAINER */
+.app-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
 }
 
-h1 {
+/* HEADER */
+.header {
     text-align: center;
+    margin-bottom: 40px;
+}
+
+.header h1 {
+    font-size: 38px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.header p {
+    font-size: 16px;
+    color: #9ca3af;
+}
+
+/* INPUT SECTION */
+.input-section label {
+    display: block;
     font-weight: 600;
+    margin-bottom: 8px;
 }
 
-.subtitle {
-    text-align: center;
-    color: #666;
-    margin-bottom: 30px;
-}
-
-textarea {
+.input-section textarea {
     width: 100%;
-    height: 150px;
-    padding: 15px;
+    height: 160px;
+    padding: 14px;
     font-size: 15px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
+    border-radius: 10px;
+    border: none;
+    background: #111827;
+    color: #e5e7eb;
     resize: none;
 }
 
-button {
+.input-section textarea::placeholder {
+    color: #6b7280;
+}
+
+.input-section button {
     margin-top: 20px;
-    width: 100%;
-    padding: 14px;
-    background: #4f46e5;
-    color: white;
+    padding: 14px 24px;
+    background: #6366f1;
+    color: #fff;
     font-size: 16px;
+    font-weight: 600;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
 }
 
-button:hover {
-    background: #4338ca;
+.input-section button:hover {
+    background: #4f46e5;
 }
 
-.results {
-    margin-top: 40px;
+/* OUTPUT SECTION */
+.output-section {
+    margin-top: 50px;
 }
 
-.card {
-    background: #f9fafb;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    border-left: 5px solid #4f46e5;
+.output-section h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
 }
 
-footer {
+/* WORKFLOW CARDS */
+.workflow-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.workflow-card {
+    display: flex;
+    align-items: center;
+    background: #111827;
+    padding: 16px;
+    border-radius: 12px;
+    border-left: 5px solid #6366f1;
+}
+
+.step-number {
+    font-weight: 700;
+    font-size: 18px;
+    color: #6366f1;
+    margin-right: 14px;
+}
+
+.step-text {
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* FOOTER */
+.footer {
+    margin-top: 60px;
     text-align: center;
-    margin-top: 30px;
     font-size: 13px;
-    color: #888;
+    color: #9ca3af;
 }
