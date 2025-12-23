@@ -1,12 +1,9 @@
-import streamlit as st
-from workflow import generate_workflow
+@app.route("/", methods=["GET", "POST"])
+def index():
+    steps = []
 
-st.title("AI-Driven Dynamic Workflow Generator")
+    if request.method == "POST":
+        user_input = request.form["process"]
+        steps = generate_workflow(user_input)
 
-user_input = st.text_area("Describe your process:")
-
-if st.button("Generate Workflow"):
-    workflow = generate_workflow(user_input)
-
-    for i, step in enumerate(workflow, 1):
-        st.write(f"{i}. {step}")
+    return render_template("index.html", steps=steps)
