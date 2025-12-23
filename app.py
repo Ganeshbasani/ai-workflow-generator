@@ -126,6 +126,6 @@ if st.button("⚡ Generate Workflow"):
 
 st.markdown("""
 <div class="footer">
-Built by Basani Ganesh · AI Workflow Automation Project
+Built by : Ganesh Basani -- AI Workflow Automation Project
 </div>
 """, unsafe_allow_html=True)
