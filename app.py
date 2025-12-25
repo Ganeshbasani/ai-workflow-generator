@@ -15,7 +15,7 @@ def extract_text_from_pdf(file):
     return text
 
 def create_pdf_bytes(steps):
-    # Fix: Defined explicit format and margins to prevent "Not enough horizontal space" error
+    # FIXED: Explicitly set orientation, units, and format
     pdf = FPDF(orientation='P', unit='mm', format='A4')
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
@@ -26,9 +26,9 @@ def create_pdf_bytes(steps):
     pdf.ln(10)
     
     for i, step in enumerate(steps, start=1):
-        # Fix: Sanitize text to latin-1 to prevent encoding crashes with special characters
+        # FIXED: Sanitize text to handle special characters that Arial/Latin-1 doesn't support
         safe_step = step.encode('latin-1', 'replace').decode('latin-1')
-        # Fix: Use a fixed width (180mm) instead of 0 to avoid calculation errors
+        # FIXED: Changed 0 to 180 (fixed width) to prevent "Not enough horizontal space" error
         pdf.multi_cell(180, 10, txt=f"{i}. {safe_step}")
         pdf.ln(2)
         
