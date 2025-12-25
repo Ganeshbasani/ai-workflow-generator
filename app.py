@@ -2,50 +2,35 @@ import streamlit as st
 import pandas as pd
 from fpdf import FPDF
 from pypdf import PdfReader
+from workflow import generate_workflow
 
-# Attempt to import your logic; if missing, use this placeholder
-try:
-    from workflow import generate_workflow
-except ImportError:
-    def generate_workflow(text):
-        # A simple placeholder split logic for testing
-        return [line.strip() for line in text.replace('.', '\n').split('\n') if len(line.strip()) > 5]
+# --- NEW FEATURE FUNCTIONS ---
 
-# --- PDF GENERATION FIX ---
-def create_pdf_bytes(steps):
-    """Generates a PDF and returns raw bytes for Streamlit download."""
+def extract_text(uploaded_file):
+    if uploaded_file.type == "application/pdf":
+        reader = PdfReader(uploaded_file)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text()
+        return text
+    else:
+        return str(uploaded_file.read(), "utf-8")
+
+def create_pdf(steps):
     pdf = FPDF()
     pdf.add_page()
-    
-    # Title
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(190, 10, txt="AI Generated Workflow", ln=True, align='C')
+    pdf.cell(190, 10, txt="Generated Workflow", ln=True, align='C')
     pdf.ln(10)
-    
-    # Workflow Steps
-    pdf.set_font("Arial", size=11)
+    pdf.set_font("Arial", size=12)
     for i, step in enumerate(steps, start=1):
-        clean_text = step.split(":", 1)[1] if ":" in step else step
-        
-        # Reset X to left margin to prevent "No horizontal space" error
+        clean = step.split(":", 1)[1] if ":" in step else step
         pdf.set_x(10)
-        
-        # Use 190mm width (Standard A4 width - margins)
-        pdf.multi_cell(190, 8, txt=f"{i}. {clean_text.strip()}", border=0)
-        pdf.ln(3) # Space between steps
-        
-    # output() in fpdf2 returns a bytearray; bytes() converts it for Streamlit
+        pdf.multi_cell(190, 10, txt=f"Step {i}: {clean.strip()}")
     return bytes(pdf.output())
 
-# --- FILE EXTRACTION LOGIC ---
-def extract_text(file):
-    if file.type == "application/pdf":
-        reader = PdfReader(file)
-        return " ".join([page.extract_text() for page in reader.pages])
-    else:
-        return str(file.read(), "utf-8")
+# --- ORIGINAL UI CODE & DESIGN ---
 
-# --- UI DESIGN (STRICTLY ORIGINAL) ---
 st.set_page_config(page_title="AI Workflow Generator", layout="centered")
 
 st.markdown("""
@@ -58,8 +43,8 @@ body {
     color: #e5e7eb;
 }
 
-/* New Animation */
-@keyframes fadeInUp {
+/* Added: Smooth Fade-in Animation for Steps */
+@keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
@@ -82,6 +67,12 @@ body {
     font-size: 16px;
 }
 
+.section-title {
+    margin-top: 40px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
 .step {
     display: flex;
     align-items: center;
@@ -90,7 +81,7 @@ body {
     border-radius: 12px;
     padding: 14px 18px;
     border-left: 4px solid #6366f1;
-    animation: fadeInUp 0.4s ease forwards;
+    animation: fadeIn 0.5s ease forwards; /* Animation added here */
 }
 
 .step-no {
@@ -107,50 +98,47 @@ body {
 }
 
 .footer {
-    margin-top: 80px;
-    padding: 20px;
+    margin-top: 40px;
     font-size: 13px;
     color: #9ca3af;
     text-align: center;
-    border-top: 1px solid #1f2937;
+    padding-bottom: 20px;
 }
 </style>
 
 <div class="container">
     <div class="title">AI-Driven Dynamic Workflow Generator</div>
-    <div class="subtitle">Convert natural language or documents into structured workflows</div>
+    <div class="subtitle">Convert natural language into structured workflows</div>
 </div>
 """, unsafe_allow_html=True)
 
-# --- APP INTERACTION ---
-
-# File Upload Option
-uploaded_file = st.file_uploader("Upload a PDF or Text file", type=["pdf", "txt"])
+# --- FEATURE: FILE UPLOAD ---
+uploaded_file = st.file_uploader("Upload PDF or Text File", type=["pdf", "txt"])
 
 user_input = st.text_area(
-    "Describe your process manually",
+    "Describe your process",
     placeholder="Customer registers.\nPlaces order.\nMakes payment.\nGenerate invoice.",
     height=140
 )
 
+# --- LOGIC ---
 if st.button("⚡ Generate Workflow"):
-    final_text = ""
+    # Determine input source
+    final_input = ""
     if uploaded_file:
-        final_text = extract_text(uploaded_file)
-    elif user_input:
-        final_text = user_input
-        
-    if final_text:
-        with st.spinner("Processing..."):
-            st.session_state['steps'] = generate_workflow(final_text)
+        final_input = extract_text(uploaded_file)
     else:
-        st.warning("Please provide an input first!")
+        final_input = user_input
 
-# Display and Download
+    if final_input:
+        steps = generate_workflow(final_input)
+        st.session_state['steps'] = steps
+
+# Display Results
 if 'steps' in st.session_state:
     steps = st.session_state['steps']
-    
-    st.markdown("### Generated Workflow")
+    st.markdown("<div class='section-title'>Generated Workflow</div>", unsafe_allow_html=True)
+
     for i, step in enumerate(steps, start=1):
         clean = step.split(":", 1)[1] if ":" in step else step
         st.markdown(f"""
@@ -159,21 +147,18 @@ if 'steps' in st.session_state:
             <div>{clean}</div>
         </div>
         """, unsafe_allow_html=True)
-    
-    # Download Buttons
-    st.markdown("---")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        csv_data = pd.DataFrame(steps, columns=["Steps"]).to_csv(index=False).encode('utf-8')
-        st.download_button("📥 Download CSV", data=csv_data, file_name="workflow.csv", mime="text/csv", use_container_width=True)
-        
-    with col2:
-        pdf_data = create_pdf_bytes(steps)
-        st.download_button("📄 Download PDF", data=pdf_data, file_name="workflow.pdf", mime="application/pdf", use_container_width=True)
 
-# Footer
-st.markdown(f"""
+    # --- FEATURE: DOWNLOAD OPTIONS ---
+    st.markdown("<br>", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+    with col1:
+        csv = pd.DataFrame(steps, columns=["Workflow"]).to_csv(index=False).encode('utf-8')
+        st.download_button("Download CSV", data=csv, file_name="workflow.csv", mime="text/csv")
+    with col2:
+        pdf_data = create_pdf(steps)
+        st.download_button("Download PDF", data=pdf_data, file_name="workflow.pdf", mime="application/pdf")
+
+st.markdown("""
 <div class="footer">
 Built by : Ganesh Basani -- AI Workflow Automation Project
 </div>
