@@ -3,46 +3,49 @@ import pandas as pd
 from fpdf import FPDF
 from pypdf import PdfReader
 
-# Attempt to import your custom workflow logic
+# Attempt to import your logic; if missing, use this placeholder
 try:
     from workflow import generate_workflow
 except ImportError:
-    # Fallback for testing if workflow.py isn't present
     def generate_workflow(text):
-        return [f"Processed: {line.strip()}" for line in text.split('.') if line.strip()]
+        # A simple placeholder split logic for testing
+        return [line.strip() for line in text.replace('.', '\n').split('\n') if len(line.strip()) > 5]
 
-# --- HELPER FUNCTIONS ---
-
-def extract_text_from_file(uploaded_file):
-    """Extracts text from uploaded PDF or TXT files."""
-    if uploaded_file.type == "application/pdf":
-        reader = PdfReader(uploaded_file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text()
-        return text
-    else:
-        return str(uploaded_file.read(), "utf-8")
-
+# --- PDF GENERATION FIX ---
 def create_pdf_bytes(steps):
-    """Generates a PDF file from the workflow steps."""
+    """Generates a PDF and returns raw bytes for Streamlit download."""
     pdf = FPDF()
     pdf.add_page()
+    
+    # Title
     pdf.set_font("Arial", 'B', 16)
     pdf.cell(190, 10, txt="AI Generated Workflow", ln=True, align='C')
     pdf.ln(10)
-    pdf.set_font("Arial", size=12)
     
+    # Workflow Steps
+    pdf.set_font("Arial", size=11)
     for i, step in enumerate(steps, start=1):
         clean_text = step.split(":", 1)[1] if ":" in step else step
-        pdf.set_x(10)
-        pdf.multi_cell(190, 10, txt=f"{i}. {clean_text.strip()}", border=0)
-        pdf.ln(2)
         
-    return pdf.output().encode('latin-1')
+        # Reset X to left margin to prevent "No horizontal space" error
+        pdf.set_x(10)
+        
+        # Use 190mm width (Standard A4 width - margins)
+        pdf.multi_cell(190, 8, txt=f"{i}. {clean_text.strip()}", border=0)
+        pdf.ln(3) # Space between steps
+        
+    # output() in fpdf2 returns a bytearray; bytes() converts it for Streamlit
+    return bytes(pdf.output())
 
-# --- UI CONFIG & DESIGN ---
+# --- FILE EXTRACTION LOGIC ---
+def extract_text(file):
+    if file.type == "application/pdf":
+        reader = PdfReader(file)
+        return " ".join([page.extract_text() for page in reader.pages])
+    else:
+        return str(file.read(), "utf-8")
 
+# --- UI DESIGN (STRICTLY ORIGINAL) ---
 st.set_page_config(page_title="AI Workflow Generator", layout="centered")
 
 st.markdown("""
@@ -55,9 +58,9 @@ body {
     color: #e5e7eb;
 }
 
-/* Fade-in Animation for Steps */
+/* New Animation */
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(15px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
@@ -71,19 +74,12 @@ body {
     font-size: 42px;
     font-weight: 700;
     line-height: 1.2;
-    color: white;
 }
 
 .subtitle {
     margin-top: 10px;
     color: #9ca3af;
     font-size: 16px;
-}
-
-.section-title {
-    margin-top: 40px;
-    font-size: 20px;
-    font-weight: 600;
 }
 
 .step {
@@ -94,7 +90,7 @@ body {
     border-radius: 12px;
     padding: 14px 18px;
     border-left: 4px solid #6366f1;
-    animation: fadeInUp 0.5s ease-out forwards;
+    animation: fadeInUp 0.4s ease forwards;
 }
 
 .step-no {
@@ -108,16 +104,15 @@ body {
     font-size: 13px;
     font-weight: 700;
     margin-right: 14px;
-    color: white;
 }
 
 .footer {
-    margin-top: 60px;
+    margin-top: 80px;
     padding: 20px;
     font-size: 13px;
     color: #9ca3af;
-    border-top: 1px solid #1f2937;
     text-align: center;
+    border-top: 1px solid #1f2937;
 }
 </style>
 
@@ -127,72 +122,59 @@ body {
 </div>
 """, unsafe_allow_html=True)
 
-# --- INPUT SECTION ---
+# --- APP INTERACTION ---
 
-st.markdown("### 📤 Step 1: Provide Input")
-uploaded_file = st.file_uploader("Upload a Process Document (PDF or TXT)", type=["pdf", "txt"])
+# File Upload Option
+uploaded_file = st.file_uploader("Upload a PDF or Text file", type=["pdf", "txt"])
 
 user_input = st.text_area(
-    "Or describe your process manually",
+    "Describe your process manually",
     placeholder="Customer registers.\nPlaces order.\nMakes payment.\nGenerate invoice.",
     height=140
 )
 
-# --- EXECUTION ---
-
 if st.button("⚡ Generate Workflow"):
-    input_data = ""
+    final_text = ""
     if uploaded_file:
-        input_data = extract_text_from_file(uploaded_file)
+        final_text = extract_text(uploaded_file)
     elif user_input:
-        input_data = user_input
-    
-    if input_data:
-        with st.spinner("Analyzing process..."):
-            steps = generate_workflow(input_data)
-            st.session_state['generated_steps'] = steps
+        final_text = user_input
+        
+    if final_text:
+        with st.spinner("Processing..."):
+            st.session_state['steps'] = generate_workflow(final_text)
     else:
-        st.error("Please upload a file or enter text.")
+        st.warning("Please provide an input first!")
 
-# --- OUTPUT SECTION ---
-
-if 'generated_steps' in st.session_state:
-    steps = st.session_state['generated_steps']
+# Display and Download
+if 'steps' in st.session_state:
+    steps = st.session_state['steps']
     
-    st.markdown("<div class='section-title'>Generated Workflow</div>", unsafe_allow_html=True)
-
+    st.markdown("### Generated Workflow")
     for i, step in enumerate(steps, start=1):
-        # Cleaning the string if it contains a colon
-        clean_text = step.split(":", 1)[1] if ":" in step else step
+        clean = step.split(":", 1)[1] if ":" in step else step
         st.markdown(f"""
         <div class="step">
             <div class="step-no">{i}</div>
-            <div>{clean_text.strip()}</div>
+            <div>{clean}</div>
         </div>
         """, unsafe_allow_html=True)
-
-    # Export Options
-    st.markdown("---")
-    st.markdown("### 📥 Download Your Workflow")
-    c1, c2 = st.columns(2)
     
-    with c1:
-        df = pd.DataFrame(steps, columns=["Workflow Steps"])
-        csv = df.to_csv(index=False).encode('utf-8')
-        st.download_button("💾 Download CSV", data=csv, file_name="workflow.csv", mime="text/csv", use_container_width=True)
+    # Download Buttons
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        csv_data = pd.DataFrame(steps, columns=["Steps"]).to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Download CSV", data=csv_data, file_name="workflow.csv", mime="text/csv", use_container_width=True)
         
-    with c2:
-        try:
-            pdf_bytes = create_pdf_bytes(steps)
-            st.download_button("📄 Download PDF", data=pdf_bytes, file_name="workflow.pdf", mime="application/pdf", use_container_width=True)
-        except Exception as e:
-            st.error(f"PDF Error: {e}")
+    with col2:
+        pdf_data = create_pdf_bytes(steps)
+        st.download_button("📄 Download PDF", data=pdf_data, file_name="workflow.pdf", mime="application/pdf", use_container_width=True)
 
-# --- FOOTER ---
-
+# Footer
 st.markdown(f"""
 <div class="footer">
-    <b>Built by : Ganesh Basani</b> -- AI Workflow Automation Project<br>
-    &copy; 2025 All Rights Reserved
+Built by : Ganesh Basani -- AI Workflow Automation Project
 </div>
 """, unsafe_allow_html=True)
