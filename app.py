@@ -2,35 +2,29 @@ import streamlit as st
 import pandas as pd
 from fpdf import FPDF
 from pypdf import PdfReader
-from workflow import generate_workflow
+# Ensure you have a file named workflow.py with generate_workflow function
+from workflow import generate_workflow 
 
-# --- NEW FEATURE FUNCTIONS ---
+# --- FUNCTIONS FOR NEW FEATURES ---
+def extract_text_from_pdf(file):
+    reader = PdfReader(file)
+    text = ""
+    for page in reader.pages:
+        text += page.extract_text()
+    return text
 
-def extract_text(uploaded_file):
-    if uploaded_file.type == "application/pdf":
-        reader = PdfReader(uploaded_file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text()
-        return text
-    else:
-        return str(uploaded_file.read(), "utf-8")
-
-def create_pdf(steps):
+def create_pdf_bytes(steps):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(190, 10, txt="Generated Workflow", ln=True, align='C')
-    pdf.ln(10)
+    pdf.cell(200, 10, txt="AI Generated Workflow", ln=True, align='C')
     pdf.set_font("Arial", size=12)
+    pdf.ln(10)
     for i, step in enumerate(steps, start=1):
-        clean = step.split(":", 1)[1] if ":" in step else step
-        pdf.set_x(10)
-        pdf.multi_cell(190, 10, txt=f"Step {i}: {clean.strip()}")
-    return bytes(pdf.output())
+        pdf.multi_cell(0, 10, txt=f"{i}. {step}")
+    return pdf.output(dest='S').encode('latin-1')
 
-# --- ORIGINAL UI CODE & DESIGN ---
-
+# --- UI CONFIG & ORIGINAL DESIGN ---
 st.set_page_config(page_title="AI Workflow Generator", layout="centered")
 
 st.markdown("""
@@ -43,8 +37,8 @@ body {
     color: #e5e7eb;
 }
 
-/* Added: Smooth Fade-in Animation for Steps */
-@keyframes fadeIn {
+/* Added Animation for Steps */
+@keyframes fadeInUp {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
@@ -81,7 +75,7 @@ body {
     border-radius: 12px;
     padding: 14px 18px;
     border-left: 4px solid #6366f1;
-    animation: fadeIn 0.5s ease forwards; /* Animation added here */
+    animation: fadeInUp 0.4s ease-out forwards; /* Applied animation */
 }
 
 .step-no {
@@ -98,45 +92,53 @@ body {
 }
 
 .footer {
-    margin-top: 40px;
+    margin-top: 60px;
+    padding: 20px;
     font-size: 13px;
     color: #9ca3af;
+    border-top: 1px solid #1f2937;
     text-align: center;
-    padding-bottom: 20px;
 }
 </style>
 
 <div class="container">
     <div class="title">AI-Driven Dynamic Workflow Generator</div>
-    <div class="subtitle">Convert natural language into structured workflows</div>
+    <div class="subtitle">Convert natural language or documents into structured workflows</div>
 </div>
 """, unsafe_allow_html=True)
 
-# --- FEATURE: FILE UPLOAD ---
-uploaded_file = st.file_uploader("Upload PDF or Text File", type=["pdf", "txt"])
+# --- INPUT SECTION ---
+# Adding file upload feature
+uploaded_file = st.file_uploader("Upload a Process Document (PDF or TXT)", type=["pdf", "txt"])
 
 user_input = st.text_area(
-    "Describe your process",
+    "Describe your process manually",
     placeholder="Customer registers.\nPlaces order.\nMakes payment.\nGenerate invoice.",
     height=140
 )
 
-# --- LOGIC ---
-if st.button("⚡ Generate Workflow"):
-    # Determine input source
-    final_input = ""
-    if uploaded_file:
-        final_input = extract_text(uploaded_file)
+# Process text from file or text area
+final_input = ""
+if uploaded_file:
+    if uploaded_file.type == "application/pdf":
+        final_input = extract_text_from_pdf(uploaded_file)
     else:
-        final_input = user_input
+        final_input = str(uploaded_file.read(), "utf-8")
+else:
+    final_input = user_input
 
+# --- GENERATION LOGIC ---
+if st.button("⚡ Generate Workflow"):
     if final_input:
         steps = generate_workflow(final_input)
-        st.session_state['steps'] = steps
+        st.session_state['generated_steps'] = steps
+    else:
+        st.error("Please provide an input description or upload a file.")
 
-# Display Results
-if 'steps' in st.session_state:
-    steps = st.session_state['steps']
+# --- DISPLAY & DOWNLOAD SECTION ---
+if 'generated_steps' in st.session_state:
+    steps = st.session_state['generated_steps']
+    
     st.markdown("<div class='section-title'>Generated Workflow</div>", unsafe_allow_html=True)
 
     for i, step in enumerate(steps, start=1):
@@ -148,18 +150,25 @@ if 'steps' in st.session_state:
         </div>
         """, unsafe_allow_html=True)
 
-    # --- FEATURE: DOWNLOAD OPTIONS ---
-    st.markdown("<br>", unsafe_allow_html=True)
+    # Download Options
+    st.markdown("### 📥 Download Results")
     col1, col2 = st.columns(2)
+    
     with col1:
-        csv = pd.DataFrame(steps, columns=["Workflow"]).to_csv(index=False).encode('utf-8')
-        st.download_button("Download CSV", data=csv, file_name="workflow.csv", mime="text/csv")
+        # CSV Export
+        df = pd.DataFrame(steps, columns=["Workflow Steps"])
+        csv = df.to_csv(index=False).encode('utf-8')
+        st.download_button("Download as CSV", data=csv, file_name="workflow.csv", mime="text/csv")
+        
     with col2:
-        pdf_data = create_pdf(steps)
-        st.download_button("Download PDF", data=pdf_data, file_name="workflow.pdf", mime="application/pdf")
+        # PDF Export
+        pdf_bytes = create_pdf_bytes(steps)
+        st.download_button("Download as PDF", data=pdf_bytes, file_name="workflow.pdf", mime="application/pdf")
 
+# --- FOOTER ---
 st.markdown("""
 <div class="footer">
-Built by : Ganesh Basani -- AI Workflow Automation Project
+    <b>Built by: Ganesh Basani</b><br>
+    AI Workflow Automation Project &copy; 2025
 </div>
 """, unsafe_allow_html=True)
