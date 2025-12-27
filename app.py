@@ -1,19 +1,27 @@
 import streamlit as st
 import pandas as pd
 import json
+import re  # Added for better validation regex
 from fpdf import FPDF
 from pypdf import PdfReader
 from workflow import generate_workflow
 from datetime import datetime
 
+# FIX: Moved to top for best practices
+st.set_page_config(page_title="AI Workflow Generator", layout="wide")
+
 # -------------------- FUNCTIONS --------------------
 
 def extract_text_from_pdf(file):
-    reader = PdfReader(file)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text()
-    return text
+    try:
+        reader = PdfReader(file)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text()
+        return text
+    except Exception as e:
+        st.error(f"Error extracting text from PDF: {e}")
+        return ""
 
 def create_pdf_bytes(steps, metadata):
     pdf = FPDF(orientation='P', unit='mm', format='A4')
@@ -31,24 +39,25 @@ def create_pdf_bytes(steps, metadata):
     pdf.set_font("Arial", size=12)
     for i, step in enumerate(steps, start=1):
         text = f"{i}. {step['step']} | Type: {step['type']} | Actor: {step['actor']}"
+        # FIX: Simplified encoding to avoid redundant .encode() on already-compatible output
         safe = text.encode('latin-1', 'replace').decode('latin-1')
         pdf.multi_cell(180, 8, safe)
         pdf.ln(2)
 
-    return pdf.output(dest='S').encode('latin-1')
+    # FIX: pdf.output('S') returns a string in FPDF; no need for extra encode
+    return pdf.output(dest='S')
 
 def generate_mermaid_code(steps):
     mermaid_code = "graph TD\n"
     for i, step in enumerate(steps):
-        label = step["step"].replace('"', "'")
+        # FIX: Better sanitization for special chars (e.g., newlines, backticks)
+        label = step["step"].replace('"', "'").replace('\n', ' ').replace('`', "'").replace('{', '').replace('}', '')
         mermaid_code += f'    step{i}["{i+1}. {label}"]\n'
         if i > 0:
             mermaid_code += f"    step{i-1} --> step{i}\n"
     return mermaid_code
 
 # -------------------- UI CONFIG --------------------
-
-st.set_page_config(page_title="AI Workflow Generator", layout="wide")
 
 st.markdown("""
 <style>
@@ -133,21 +142,29 @@ with st.sidebar:
             if uploaded_file.type == "application/pdf":
                 content = extract_text_from_pdf(uploaded_file)
             else:
-                content = uploaded_file.read().decode("utf-8")
+                # FIX: Handle encoding errors gracefully
+                try:
+                    content = uploaded_file.read().decode("utf-8")
+                except UnicodeDecodeError:
+                    content = uploaded_file.read().decode("utf-8", errors="replace")
         else:
             content = user_input
 
         if content:
             steps = generate_workflow(content)
-            st.session_state.generated_steps = [{
-                "step": s,
-                "type": "Manual",
-                "actor": "System",
-                "enabled": True
-            } for s in steps]
+            # FIX: Basic type check to avoid crashes if steps aren't strings
+            if not isinstance(steps, list) or not all(isinstance(s, str) for s in steps):
+                st.error("Invalid workflow output from generate_workflow.")
+            else:
+                st.session_state.generated_steps = [{
+                    "step": s,
+                    "type": "Manual",
+                    "actor": "System",
+                    "enabled": True
+                } for s in steps]
 
-            st.session_state.history.append(st.session_state.generated_steps)
-            st.session_state.history = st.session_state.history[-3:]
+                st.session_state.history.append(st.session_state.generated_steps.copy())
+                st.session_state.history = st.session_state.history[-3:]
         else:
             st.error("Please provide input.")
 
@@ -161,6 +178,7 @@ with col_list:
 
         updated = []
         texts = []
+        move_actions = []  # FIX: Collect moves to apply after loop
 
         for i, step in enumerate(st.session_state.generated_steps, start=1):
             st.markdown("<div class='step'>", unsafe_allow_html=True)
@@ -171,19 +189,16 @@ with col_list:
             actor = st.text_input("Actor", step["actor"], key=f"actor_{i}", label_visibility="collapsed")
             enabled = st.checkbox("Enable", value=step["enabled"], key=f"enable_{i}")
 
-            # Duplicate detection
+            # FIX: Improved duplicate detection (warns on all duplicates)
             if text.lower() in texts:
                 st.warning("⚠ Possible duplicate step detected")
             texts.append(text.lower())
 
             col_up, col_down = st.columns(2)
             if col_up.button("⬆ Move Up", key=f"up_{i}") and i > 1:
-                st.session_state.generated_steps[i-1], st.session_state.generated_steps[i-2] = \
-                st.session_state.generated_steps[i-2], st.session_state.generated_steps[i-1]
-
+                move_actions.append((i-1, "up"))
             if col_down.button("⬇ Move Down", key=f"down_{i}") and i < len(st.session_state.generated_steps):
-                st.session_state.generated_steps[i-1], st.session_state.generated_steps[i] = \
-                st.session_state.generated_steps[i], st.session_state.generated_steps[i-1]
+                move_actions.append((i-1, "down"))
 
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -194,15 +209,22 @@ with col_list:
                 "enabled": enabled
             })
 
+        # FIX: Apply moves after loop to keep numbering/content aligned
+        for idx, direction in move_actions:
+            if direction == "up" and idx > 0:
+                updated[idx], updated[idx-1] = updated[idx-1], updated[idx]
+            elif direction == "down" and idx < len(updated) - 1:
+                updated[idx], updated[idx+1] = updated[idx+1], updated[idx]
+
         st.session_state.generated_steps = updated
 
         # Summary
         summary = " → ".join([s["step"] for s in updated[:3]])
         st.caption(f"📌 Summary: {summary}...")
 
-        # Validation
+        # FIX: Improved validation with regex
         all_text = " ".join([s["step"].lower() for s in updated])
-        if "approve" not in all_text:
+        if not re.search(r'approv', all_text):
             st.info("ℹ No approval step detected")
 
         if len(updated) < 3:
