@@ -20,80 +20,62 @@ def generate_workflow(text):
             continue
 
         # ================= EDUCATION DOMAIN =================
-        if "student" in s or "admission" in s or "course" in s or "exam" in s:
-            if "apply" in s or "admission" in s:
-                raw_steps.append("Process student admission")
-            if "verify" in s:
-                raw_steps.append("Verify student documents")
-            if "enroll" in s or "course" in s:
-                raw_steps.append("Enroll student into course")
-            if "assign" in s:
-                raw_steps.append("Assign subjects to student")
-            if "exam" in s:
-                raw_steps.append("Schedule examination")
-            if "result" in s or "grade" in s:
-                raw_steps.append("Publish academic results")
-            if "attendance" in s:
-                raw_steps.append("Record student attendance")
+        if any(w in s for w in ["student", "admission", "course", "exam", "teacher", "school"]):
+            if "apply" in s or "admission" in s: raw_steps.append("Process student admission")
+            if "verify" in s: raw_steps.append("Verify student documents")
+            if "enroll" in s or "course" in s: raw_steps.append("Enroll student into course")
+            if "assign" in s: raw_steps.append("Assign subjects or classes")
+            if "exam" in s or "test" in s: raw_steps.append("Schedule examination")
+            if "result" in s or "grade" in s: raw_steps.append("Publish academic results")
 
-        # ================= BUSINESS DOMAIN =================
-        if "customer" in s or "order" in s or "payment" in s or "invoice" in s:
-            if "register" in s:
-                raw_steps.append("Register customer")
-            if "order" in s or "purchase" in s:
-                raw_steps.append("Process customer order")
+        # ================= BUSINESS / ORGANIZATIONS =================
+        if any(w in s for w in ["customer", "order", "payment", "invoice", "client", "employee"]):
+            if "register" in s or "onboard" in s: raw_steps.append("Register new client/customer")
+            if "order" in s or "purchase" in s: raw_steps.append("Process order request")
             if "payment" in s:
-                if "fail" in s or "failed" in s:
-                    raw_steps.append("Handle failed payment")
-                else:
-                    raw_steps.append("Process payment")
-            if "refund" in s:
-                raw_steps.append("Process refund request")
-            if "invoice" in s or "billing" in s:
-                raw_steps.append("Generate invoice")
-            if "shipment" in s or "delivery" in s:
-                raw_steps.append("Arrange product delivery")
-            if "report" in s:
-                raw_steps.append("Generate business report")
-            if "revenue" in s:
-                raw_steps.append("Calculate revenue")
+                if "fail" in s: raw_steps.append("Handle failed payment")
+                else: raw_steps.append("Process payment transaction")
+            if "invoice" in s: raw_steps.append("Generate tax invoice")
+            if "ship" in s or "delivery" in s: raw_steps.append("Arrange logistics and delivery")
 
-        # ================= IT / SOFTWARE DOMAIN =================
-        if "user" in s or "login" in s or "deploy" in s or "server" in s:
-            if "register" in s or "signup" in s:
-                raw_steps.append("Register new user")
-            if "login" in s or "authenticate" in s:
-                raw_steps.append("Authenticate user login")
-            if "permission" in s or "role" in s:
-                raw_steps.append("Assign user role and permissions")
-            if "deploy" in s:
-                raw_steps.append("Deploy application")
-            if "server" in s:
-                raw_steps.append("Monitor server performance")
-            if "backup" in s:
-                raw_steps.append("Take system backup")
-            if "bug" in s or "error" in s:
-                raw_steps.append("Identify and fix software issue")
-            if "log" in s:
-                raw_steps.append("Log system activity")
+        # ================= REAL ESTATE DOMAIN =================
+        if any(w in s for w in ["property", "house", "tenant", "buyer", "rent", "listing"]):
+            if "list" in s or "add" in s: raw_steps.append("Create property listing")
+            if "visit" in s or "view" in s: raw_steps.append("Schedule property viewing")
+            if "agreement" in s or "contract" in s: raw_steps.append("Draft lease/sale agreement")
+            if "rent" in s or "pay" in s: raw_steps.append("Collect rental payment")
+            if "maintenance" in s: raw_steps.append("Log maintenance request")
+            if "sell" in s or "buy" in s: raw_steps.append("Execute property transfer")
 
-        # ================= COMMON ACTIONS =================
-        if "save" in s or "store" in s:
-            raw_steps.append("Save data to database")
-        if "update" in s:
-            raw_steps.append("Update existing records")
-        if "delete" in s:
-            raw_steps.append("Delete record")
-        if "email" in s:
-            raw_steps.append("Send email notification")
-        if "notify" in s or "alert" in s:
-            raw_steps.append("Send notification")
-        if "approve" in s:
-            raw_steps.append("Approve request")
-        if "reject" in s:
-            raw_steps.append("Reject request")
-        if "generate" in s:
-            raw_steps.append("Generate system output")
+        # ================= HOSPITAL / HEALTHCARE =================
+        if any(w in s for w in ["patient", "doctor", "appointment", "medical", "health", "ward"]):
+            if "book" in s or "appointment" in s: raw_steps.append("Schedule doctor appointment")
+            if "check" in s or "admit" in s: raw_steps.append("Patient check-in and vitals recording")
+            if "diagnose" in s or "test" in s: raw_steps.append("Perform medical diagnosis")
+            if "prescribe" in s or "medicine" in s: raw_steps.append("Issue medical prescription")
+            if "bill" in s or "discharge" in s: raw_steps.append("Process discharge and final billing")
+
+        # ================= SOFTWARE INDUSTRY / PROJECTS =================
+        if any(w in s for w in ["software", "code", "sprint", "feature", "bug", "developer", "git"]):
+            if "requirement" in s or "plan" in s: raw_steps.append("Analyze project requirements")
+            if "design" in s: raw_steps.append("Create system architecture design")
+            if "develop" in s or "code" in s: raw_steps.append("Commence feature development")
+            if "test" in s or "qa" in s: raw_steps.append("Perform Quality Assurance (QA) testing")
+            if "deploy" in s or "release" in s: raw_steps.append("Deploy to production environment")
+            if "review" in s: raw_steps.append("Conduct code review")
+
+        # ================= IT / INFRASTRUCTURE =================
+        if any(w in s for w in ["user", "login", "server", "database", "cloud"]):
+            if "login" in s or "auth" in s: raw_steps.append("Authenticate user")
+            if "server" in s: raw_steps.append("Monitor server health")
+            if "backup" in s: raw_steps.append("Perform automated data backup")
+
+        # ================= GENERIC CATCH-ALL (Prevents empty results) =================
+        if "start" in s or "begin" in s: raw_steps.append("Initiate workflow process")
+        if "update" in s: raw_steps.append("Update system records")
+        if "save" in s or "store" in s: raw_steps.append("Save data to database")
+        if "email" in s or "send" in s: raw_steps.append("Send communication/notification")
+        if "end" in s or "finish" in s: raw_steps.append("Complete workflow process")
 
     # -------- DEDUPLICATION + NUMBERING --------
     final_steps = []
@@ -104,6 +86,9 @@ def generate_workflow(text):
             step_no += 1
 
     if not final_steps:
-        return ["No workflow steps detected"]
+        # Instead of failing, try to turn their sentence into a generic step
+        if len(sentences) > 0 and len(sentences[0]) > 2:
+             return [f"Step 1: {sentences[0].capitalize()}"]
+        return ["No specific workflow steps detected. Please describe the process more clearly."]
 
     return final_steps
