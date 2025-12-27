@@ -2,10 +2,19 @@ import streamlit as st
 import pandas as pd
 from fpdf import FPDF
 from pypdf import PdfReader
-from workflow import generate_workflow
 
-# --- FUNCTIONS ---
+# Attempt to import your custom workflow logic
+try:
+    from workflow import generate_workflow
+except ImportError:
+    # Fallback placeholder if workflow.py is missing
+    def generate_workflow(text):
+        return [line.strip() for line in text.split('.') if len(line.strip()) > 5]
+
+# --- CORE FUNCTIONS ---
+
 def extract_text(uploaded_file):
+    """Handles text extraction from PDF and TXT."""
     if uploaded_file.type == "application/pdf":
         reader = PdfReader(uploaded_file)
         text = ""
@@ -16,22 +25,36 @@ def extract_text(uploaded_file):
         return str(uploaded_file.read(), "utf-8")
 
 def create_pdf(steps):
+    """Generates a professional PDF document."""
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(190, 10, txt="Generated Workflow", ln=True, align='C')
+    pdf.cell(190, 10, txt="Architect AI - Workflow Report", ln=True, align='C')
     pdf.ln(10)
     pdf.set_font("Arial", size=12)
     for i, step in enumerate(steps, start=1):
         clean = step.split(":", 1)[1] if ":" in step else step
         pdf.set_x(10)
         pdf.multi_cell(190, 10, txt=f"Step {i}: {clean.strip()}")
+        pdf.ln(2)
     return bytes(pdf.output())
 
-# --- UI CONFIG ---
+def generate_mermaid(steps):
+    """Creates Mermaid.js code for the flowchart."""
+    # Start of Mermaid diagram
+    mermaid_code = "graph TD\n"
+    for i in range(len(steps)):
+        # Clean text for diagram labels
+        clean_label = steps[i].replace('"', "'")[:40]
+        if i < len(steps) - 1:
+            next_label = steps[i+1].replace('"', "'")[:40]
+            mermaid_code += f'    step{i}["{clean_label}"] --> step{i+1}["{next_label}"]\n'
+    return mermaid_code
+
+# --- UI CONFIG & PREMIUM DESIGN ---
+
 st.set_page_config(page_title="Architect AI", layout="centered")
 
-# --- CUSTOM MODERN CSS ---
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
@@ -42,7 +65,7 @@ st.markdown("""
     font-family: 'Inter', sans-serif;
 }
 
-/* Badge */
+/* Badge at top */
 .badge {
     display: flex;
     justify-content: center;
@@ -58,7 +81,7 @@ st.markdown("""
     font-weight: 500;
 }
 
-/* Titles */
+/* Typography */
 .main-title {
     text-align: center;
     font-size: 56px;
@@ -81,12 +104,11 @@ st.markdown("""
     line-height: 1.6;
 }
 
-/* File Upload & Input Area */
+/* Inputs */
 [data-testid="stFileUploader"] {
     background: rgba(30, 41, 59, 0.4);
     border: 1px dashed rgba(99, 102, 241, 0.3);
     border-radius: 12px;
-    padding: 20px;
 }
 
 .stTextArea textarea {
@@ -96,13 +118,13 @@ st.markdown("""
     border-radius: 12px !important;
 }
 
-/* Glowing Button */
+/* Glowing Generate Button */
 .stButton button {
     width: 100%;
     background: #6366f1 !important;
     color: white !important;
     border: none !important;
-    padding: 12px !important;
+    padding: 14px !important;
     font-weight: 600 !important;
     border-radius: 12px !important;
     box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
@@ -113,13 +135,13 @@ st.markdown("""
     box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
 }
 
-/* Workflow Steps */
+/* Workflow Step Cards */
 .step-container {
     background: rgba(15, 23, 42, 0.6);
     border: 1px solid #1e293b;
     border-left: 4px solid #6366f1;
     border-radius: 12px;
-    padding: 16px;
+    padding: 18px;
     margin-bottom: 12px;
     animation: fadeIn 0.6s ease forwards;
 }
@@ -132,7 +154,8 @@ st.markdown("""
 .footer {
     text-align: center;
     color: #64748b;
-    margin-top: 50px;
+    margin-top: 60px;
+    padding-bottom: 30px;
     font-size: 14px;
 }
 </style>
@@ -142,47 +165,60 @@ st.markdown("""
 <div class="main-subtitle">Transform your ideas into structured, actionable workflows<br>with the power of artificial intelligence.</div>
 """, unsafe_allow_html=True)
 
-# --- APP CONTENT ---
+# --- APP LAYOUT ---
+
 uploaded_file = st.file_uploader("", type=["pdf", "txt"])
 
 user_input = st.text_area(
     "",
-    placeholder="Describe the workflow you want to generate (e.g. 'Customer onboarding for SaaS analytics')",
-    height=100
+    placeholder="Describe your process manually or upload a document above...",
+    height=120
 )
 
 if st.button("⚡ Generate Workflow"):
-    final_input = ""
+    input_data = ""
     if uploaded_file:
-        final_input = extract_text(uploaded_file)
+        input_data = extract_text(uploaded_file)
     else:
-        final_input = user_input
+        input_data = user_input
 
-    if final_input:
-        with st.spinner("Thinking..."):
-            steps = generate_workflow(final_input)
-            st.session_state['steps'] = steps
+    if input_data:
+        with st.spinner("Architecting your workflow..."):
+            # Call your backend logic
+            generated_steps = generate_workflow(input_data)
+            st.session_state['steps'] = generated_steps
+    else:
+        st.info("Please provide an input process to begin.")
 
-# --- RESULTS ---
+# --- RESULTS SECTION ---
+
 if 'steps' in st.session_state:
     steps = st.session_state['steps']
-    st.write("---")
     
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Feature: Visual Flowchart
+    with st.expander("📊 Visual Flowchart", expanded=True):
+        m_code = generate_mermaid(steps)
+        st.mermaid(m_code)
+    
+    st.markdown("### Process Breakdown")
     for i, step in enumerate(steps, start=1):
         clean = step.split(":", 1)[1] if ":" in step else step
         st.markdown(f"""
         <div class="step-container">
-            <span style="color: #6366f1; font-weight: 700; margin-right: 10px;">{i}.</span>
+            <span style="color: #6366f1; font-weight: 700; margin-right: 12px;">{i}.</span>
             {clean.strip()}
         </div>
         """, unsafe_allow_html=True)
 
-    # Export Buttons (Side by Side)
-    col1, col2 = st.columns(2)
-    with col1:
-        csv = pd.DataFrame(steps, columns=["Workflow"]).to_csv(index=False).encode('utf-8')
+    # Export Suite
+    st.markdown("---")
+    c1, c2 = st.columns(2)
+    with c1:
+        csv = pd.DataFrame(steps, columns=["Steps"]).to_csv(index=False).encode('utf-8')
         st.download_button("📂 Export as CSV", data=csv, file_name="workflow.csv", use_container_width=True)
-    with col2:
+    with c2:
         pdf_data = create_pdf(steps)
         st.download_button("📄 Generate PDF Report", data=pdf_data, file_name="workflow.pdf", use_container_width=True)
 
