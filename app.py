@@ -2,21 +2,73 @@ import streamlit as st
 import pandas as pd
 from fpdf import FPDF
 from pypdf import PdfReader
-import base64
 
-# --- 1. PAGE CONFIG (Must be first) ---
-st.set_page_config(page_title="Architect AI | Workflow Automation", layout="wide", initial_sidebar_state="collapsed")
+# --- 1. PAGE CONFIG (STRICTLY FIRST) ---
+st.set_page_config(page_title="Architect AI", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. CORE LOGIC ---
+# --- 2. CSS FOR PAGE FITTING & STYLING ---
+st.markdown("""
+<style>
+    /* Force the app to use the full width and remove top padding */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 0rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        max-width: 100% !important;
+    }
+    
+    /* Global Background */
+    .stApp {
+        background-color: #020617;
+        color: #f8fafc;
+    }
+
+    /* Glassmorphism Card */
+    .glass-card {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+    }
+
+    /* Scrollable Output Box */
+    .scroll-box {
+        height: 500px;
+        overflow-y: auto;
+        padding: 15px;
+        background: rgba(15, 23, 42, 0.5);
+        border-radius: 10px;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .step-box {
+        background: rgba(30, 41, 59, 0.6);
+        border-left: 4px solid #6366f1;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+    }
+
+    .hero-title {
+        font-size: 40px; 
+        font-weight: 800; 
+        background: linear-gradient(to right, #fff, #6366f1);
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- 3. HELPER FUNCTIONS ---
 def generate_workflow_logic(text, sector):
     raw_steps = [line.strip() for line in text.replace('.', '\n').split('\n') if len(line.strip()) > 10]
     blueprints = {
-        "Educational Institutes": "Academic Phase",
-        "Business Organizations": "Ops Milestone",
-        "Real Estate": "Property Stage",
-        "Software Industries": "Dev Sprint",
-        "Software Projects": "SDLC Step",
-        "Hospitals": "Clinical Protocol"
+        "Educational Institutes": "Academic", "Business Organizations": "Ops",
+        "Real Estate": "Property", "Software Industries": "Dev",
+        "Software Projects": "SDLC", "Hospitals": "Clinical"
     }
     prefix = blueprints.get(sector, "Process")
     return [f"[{prefix}] {step}" for step in raw_steps]
@@ -25,7 +77,7 @@ def generate_mermaid(steps):
     mermaid_code = "graph TD\n"
     for i in range(len(steps)):
         clean_text = steps[i].replace('"', "'")
-        short_text = (clean_text[:30] + '...') if len(clean_text) > 30 else clean_text
+        short_text = (clean_text[:25] + '...') if len(clean_text) > 25 else clean_text
         if i < len(steps) - 1:
             mermaid_code += f'    step{i}["{short_text}"] --> step{i+1}\n'
         else:
@@ -37,122 +89,65 @@ def create_pdf(steps, sector):
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
     pdf.cell(190, 10, txt=f"Architect AI - {sector} Workflow", ln=True, align='C')
-    pdf.ln(10)
     pdf.set_font("Arial", size=11)
     for i, step in enumerate(steps, start=1):
         pdf.multi_cell(190, 8, txt=f"{i}. {step.strip()}")
-        pdf.ln(2)
     return bytes(pdf.output())
 
-# --- 3. ADVANCED UI ADJUSTMENTS ---
-st.markdown("""
-<style>
-    /* Remove Streamlit default padding for 'Full Bleed' look */
-    .block-container {
-        padding-top: 2rem !important;
-        padding-bottom: 0rem !important;
-        max-width: 95% !important;
-    }
+# --- 4. MAIN UI ---
+st.markdown('<h1 class="hero-title">Architect AI</h1>', unsafe_allow_html=True)
+st.markdown('<p style="color:#94a3b8; margin-bottom:20px;">v2.5 Professional Workflow Engine</p>', unsafe_allow_html=True)
+
+# Main Column Layout
+col_input, col_output = st.columns([1, 1.5], gap="medium")
+
+with col_input:
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    industry = st.selectbox("Select Industry", ["Educational Institutes", "Business Organizations", "Real Estate", "Software Industries", "Software Projects", "Hospitals"])
+    uploaded_file = st.file_uploader("Upload Context (PDF/TXT)", type=["pdf", "txt"])
+    user_text = st.text_area("Process Description", height=200, placeholder="Paste your workflow details here...")
     
-    .stApp {
-        background-color: #020617;
-        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
-        background-size: 40px 40px;
-    }
-
-    /* Professional Glass Card */
-    .glass-card {
-        background: rgba(15, 23, 42, 0.7);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 20px;
-        padding: 25px;
-        margin-bottom: 20px;
-    }
-
-    .hero-title {
-        font-size: 52px; font-weight: 800; letter-spacing: -1.5px;
-        background: linear-gradient(90deg, #ffffff, #6366f1);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        margin-bottom: 5px;
-    }
-
-    /* Scrollable Results Area to keep page height fixed */
-    .scroll-area {
-        max-height: 70vh;
-        overflow-y: auto;
-        padding-right: 10px;
-    }
-    
-    .step-box {
-        background: rgba(30, 41, 59, 0.4);
-        border-left: 3px solid #6366f1;
-        padding: 15px;
-        margin-bottom: 12px;
-        border-radius: 8px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# --- 4. LAYOUT DESIGN ---
-
-# Title
-st.markdown('<h1 class="hero-title">Architect <span style="color:#6366f1; -webkit-text-fill-color:#6366f1;">AI</span></h1>', unsafe_allow_html=True)
-st.markdown('<p style="color:#94a3b8; margin-bottom:30px;">Professional Industrial Workflow Synthesis</p>', unsafe_allow_html=True)
-
-main_left, main_right = st.columns([1, 1.2], gap="medium")
-
-with main_left:
-    with st.container():
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        industry = st.selectbox("Industry Sector", ["Educational Institutes", "Business Organizations", "Real Estate", "Software Industries", "Software Projects", "Hospitals"])
-        file = st.file_uploader("Context Document", type=["pdf", "txt"])
-        raw_input = st.text_area("Process Description", height=150, placeholder="Describe your workflow requirements...")
-        generate_btn = st.button("⚡ CONSTRUCT WORKFLOW", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
-with main_right:
-    if generate_btn and (raw_input or file):
-        with st.spinner("Processing..."):
-            combined_text = raw_input
-            if file:
-                if file.type == "application/pdf":
-                    reader = PdfReader(file)
-                    combined_text += " " + " ".join([p.extract_text() for p in reader.pages])
+    if st.button("⚡ GENERATE ARCHITECTURE", use_container_width=True):
+        if user_text or uploaded_file:
+            full_context = user_text
+            if uploaded_file:
+                if uploaded_file.type == "application/pdf":
+                    pdf_reader = PdfReader(uploaded_file)
+                    full_context += " " + " ".join([page.extract_text() for page in pdf_reader.pages])
                 else:
-                    combined_text += " " + str(file.read(), "utf-8")
+                    full_context += " " + str(uploaded_file.read(), "utf-8")
             
-            steps = generate_workflow_logic(combined_text, industry)
-            st.session_state['active_steps'] = steps
-            st.session_state['active_industry'] = industry
+            st.session_state['results'] = generate_workflow_logic(full_context, industry)
+            st.session_state['industry'] = industry
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    if 'active_steps' in st.session_state:
-        st.markdown(f"#### 📋 {st.session_state['active_industry']} Output")
+with col_output:
+    if 'results' in st.session_state:
+        st.subheader(f"Project Blueprint: {st.session_state['industry']}")
         
-        tab1, tab2 = st.tabs(["📊 Logic Flow", "📝 Detailed Steps"])
+        tab_flow, tab_list = st.tabs(["📊 Flow Diagram", "📝 Step Details"])
         
-        with tab1:
+        with tab_flow:
             st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-            mm_code = generate_mermaid(st.session_state['active_steps'])
-            st.mermaid(mm_code) # Updated to use native streamlit mermaid support if available or markdown
+            mm = generate_mermaid(st.session_state['results'])
+            st.mermaid(mm)
             st.markdown('</div>', unsafe_allow_html=True)
             
-        with tab2:
-            # Wrap steps in a scrollable div
-            st.markdown('<div class="scroll-area">', unsafe_allow_html=True)
-            for i, step in enumerate(st.session_state['active_steps'], start=1):
-                st.markdown(f'<div class="step-box"><small style="color:#6366f1;">PHASE {i:02d}</small><br>{step}</div>', unsafe_allow_html=True)
+        with tab_list:
+            st.markdown('<div class="scroll-box">', unsafe_allow_html=True)
+            for i, step in enumerate(st.session_state['results'], 1):
+                st.markdown(f'<div class="step-box"><b>Phase {i:02d}:</b><br>{step}</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
-            
-        # Action Bar
-        col1, col2 = st.columns(2)
-        with col1:
-            csv = pd.DataFrame(st.session_state['active_steps']).to_csv(index=False).encode('utf-8')
-            st.download_button("Download CSV", csv, "workflow.csv", use_container_width=True)
-        with col2:
-            pdf = create_pdf(st.session_state['active_steps'], st.session_state['active_industry'])
-            st.download_button("Download PDF", pdf, "report.pdf", use_container_width=True)
+        
+        # Action Buttons
+        btn_col1, btn_col2 = st.columns(2)
+        with btn_col1:
+            csv = pd.DataFrame(st.session_state['results'], columns=["Workflow"]).to_csv(index=False).encode('utf-8')
+            st.download_button("Download CSV", csv, "workflow.csv", "text/csv", use_container_width=True)
+        with btn_col2:
+            pdf_data = create_pdf(st.session_state['results'], st.session_state['industry'])
+            st.download_button("Download PDF", pdf_data, "report.pdf", "application/pdf", use_container_width=True)
     else:
-        st.markdown('<div style="height:450px; border:1px dashed #334155; border-radius:20px; display:flex; align-items:center; justify-content:center; color:#475569;">Ready for input analysis...</div>', unsafe_allow_html=True)
+        st.info("Awaiting parameters from the left panel to begin construction.")
 
-st.markdown('<p style="text-align:center; color:#334155; margin-top:50px;">Architect AI v2.5 | Ganesh Basani</p>', unsafe_allow_html=True)
+st.markdown('<div style="text-align:center; color:#475569; padding-top:20px;">Developed by Ganesh Basani</div>', unsafe_allow_html=True)
