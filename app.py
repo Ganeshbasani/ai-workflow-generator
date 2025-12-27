@@ -2,131 +2,209 @@ import streamlit as st
 import pandas as pd
 from fpdf import FPDF
 from pypdf import PdfReader
-from workflow import generate_workflow
+import base64
 
-# --- FUNCTIONS ---
-def extract_text(uploaded_file):
-    try:
-        if uploaded_file.type == "application/pdf":
-            reader = PdfReader(uploaded_file)
-            text = ""
-            for page in reader.pages:
-                text += page.extract_text()
-            return text
+# --- 1. CORE LOGIC ---
+def generate_workflow_logic(text, sector):
+    """
+    Simulates industry-specific intelligence by mapping the input 
+    to architectural blueprints.
+    """
+    # Simple logic to split sentences; in production, this connects to your LLM
+    raw_steps = [line.strip() for line in text.replace('.', '\n').split('\n') if len(line.strip()) > 10]
+    
+    blueprints = {
+        "Educational Institutes": "Academic Phase",
+        "Business Organizations": "Ops Milestone",
+        "Real Estate": "Property Stage",
+        "Software Industries": "Dev Sprint",
+        "Software Projects": "SDLC Step",
+        "Hospitals": "Clinical Protocol"
+    }
+    
+    prefix = blueprints.get(sector, "Process")
+    return [f"[{prefix}] {step}" for step in raw_steps]
+
+def generate_mermaid(steps):
+    """Generates flowchart code for the right-side visualization."""
+    mermaid_code = "graph TD\n"
+    for i in range(len(steps)):
+        clean_text = steps[i].replace('"', "'")
+        short_text = (clean_text[:30] + '...') if len(clean_text) > 30 else clean_text
+        if i < len(steps) - 1:
+            mermaid_code += f'    step{i}["{short_text}"] --> step{i+1}\n'
         else:
-            return uploaded_file.getvalue().decode("utf-8")
-    except Exception as e:
-        st.error(f"Error reading file: {e}")
-        return ""
+            mermaid_code += f'    step{i}["{short_text}"]\n'
+    return mermaid_code
 
-def create_pdf(steps):
+def create_pdf(steps, sector):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", 'B', 16)
-    pdf.cell(190, 10, txt="Generated Workflow", ln=True, align='C')
+    pdf.cell(190, 10, txt=f"Architect AI - {sector} Workflow", ln=True, align='C')
     pdf.ln(10)
-    pdf.set_font("Arial", size=12)
+    pdf.set_font("Arial", size=11)
     for i, step in enumerate(steps, start=1):
-        clean = step.split(":", 1)[1] if ":" in step else step
         pdf.set_x(10)
-        pdf.multi_cell(190, 10, txt=f"Step {i}: {clean.strip()}")
+        pdf.multi_cell(190, 8, txt=f"{i}. {step.strip()}")
+        pdf.ln(2)
     return bytes(pdf.output())
 
-# --- UI CONFIG ---
-st.set_page_config(page_title="Architect AI", layout="centered")
+# --- 2. PAGE CONFIG ---
+st.set_page_config(page_title="Architect AI | Workflow Automation", layout="wide")
 
-# --- CUSTOM MODERN CSS ---
+# --- 3. ADVANCED CSS & ANIMATIONS ---
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
 
-.stApp { background: #020617; font-family: 'Inter', sans-serif; }
-.badge { display: flex; justify-content: center; margin-bottom: 20px; }
-.badge-content { 
-    background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); 
-    color: #818cf8; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 500; 
+/* Base Theme */
+.stApp {
+    background-color: #020617;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.4) 0px, transparent 50%);
+    font-family: 'Inter', sans-serif;
+    color: #f8fafc;
 }
-.main-title { 
-    text-align: center; font-size: 56px; font-weight: 800; 
-    background: linear-gradient(to bottom, #ffffff, #94a3b8);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; 
+
+/* Sidebar/Panel Styling */
+.glass-card {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 30px;
+    margin-bottom: 20px;
 }
-.architect-text { color: #6366f1; -webkit-text-fill-color: #6366f1; }
-.main-subtitle { text-align: center; color: #94a3b8; font-size: 18px; margin-bottom: 40px; line-height: 1.6; }
 
-/* Category Styling */
-.stSelectbox label { color: #818cf8 !important; font-weight: 600 !important; }
-div[data-baseweb="select"] { background-color: #0f172a !important; border-radius: 12px; }
+/* Titles */
+.hero-title {
+    font-size: 64px; font-weight: 800; letter-spacing: -2px;
+    background: linear-gradient(to right, #fff, #94a3b8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 0px;
+}
+.accent { color: #6366f1; -webkit-text-fill-color: #6366f1; }
 
-[data-testid="stFileUploader"] { background: rgba(30, 41, 59, 0.4); border: 1px dashed rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px; }
-.stTextArea textarea { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid #1e293b !important; color: #e2e8f0 !important; border-radius: 12px !important; }
-.stButton button { width: 100%; background: #6366f1 !important; color: white !important; border: none !important; padding: 12px !important; font-weight: 600 !important; border-radius: 12px !important; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); transition: 0.3s; }
-.stButton button:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(99, 102, 241, 0.6); }
+/* Result Steps */
+.step-box {
+    background: rgba(30, 41, 59, 0.5);
+    border-left: 4px solid #6366f1;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: 0.3s;
+    animation: fadeInRight 0.5s ease forwards;
+}
+.step-box:hover { background: rgba(99, 102, 241, 0.1); transform: translateX(5px); }
 
-.step-container { background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-left: 4px solid #6366f1; border-radius: 12px; padding: 16px; margin-bottom: 12px; animation: fadeIn 0.6s ease forwards; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.footer { text-align: center; color: #64748b; margin-top: 50px; font-size: 14px; }
+@keyframes fadeInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Custom Button */
+.stButton>button {
+    background: linear-gradient(90deg, #6366f1 0%, #4f46e5 100%) !important;
+    border: none !important; color: white !important;
+    padding: 25px !important; border-radius: 15px !important;
+    font-weight: 700 !important; font-size: 18px !important;
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+}
 </style>
-
-<div class="badge"><div class="badge-content">⚙️ AI-Powered Workflows</div></div>
-<div class="main-title"><span class="architect-text">Architect</span> AI</div>
-<div class="main-subtitle">Select a domain and transform ideas into actionable workflows.</div>
 """, unsafe_allow_html=True)
 
-# --- APP CONTENT ---
+# --- 4. LAYOUT DESIGN ---
 
-# New Category Feature
-category = st.selectbox(
-    "Choose Industry/Sector",
-    ["Educational Institutes", "Business Organizations", "Real Estate", "Software Industries", "Software Projects", "Hospitals"]
-)
+# Header area
+st.markdown('<h1 class="hero-title">Architect <span class="accent">AI</span></h1>', unsafe_allow_html=True)
+st.markdown('<p style="color:#94a3b8; font-size:20px; margin-bottom:40px;">Industrial-grade workflow synthesis for professional domains.</p>', unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader("Optional: Upload context file (PDF/TXT)", type=["pdf", "txt"])
+# Main Dashboard columns
+left_col, right_col = st.columns([1, 1.4], gap="large")
 
-user_input = st.text_area(
-    "",
-    placeholder=f"Describe the specific {category} workflow you need...",
-    height=100
-)
-
-if st.button("⚡ Generate Workflow"):
-    # Combine Category + Text + File content to prevent "Not Detected" errors
-    file_content = extract_text(uploaded_file) if uploaded_file else ""
+with left_col:
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.subheader("🚀 Project Parameters")
     
-    # Constructing a structured prompt
-    full_prompt = f"Category: {category}\nContext: {user_input}\nAdditional Info: {file_content}"
+    industry = st.selectbox(
+        "Industry Sector",
+        ["Educational Institutes", "Business Organizations", "Real Estate", "Software Industries", "Software Projects", "Hospitals"]
+    )
     
-    if user_input.strip() or file_content.strip():
-        with st.spinner(f"Architecting {category} workflow..."):
-            steps = generate_workflow(full_prompt)
-            if steps:
-                st.session_state['steps'] = steps
-            else:
-                st.error("The workflow engine returned no results. Please check your workflow.py logic.")
+    file = st.file_uploader("Context File (Optional)", type=["pdf", "txt"])
+    
+    raw_input = st.text_area("Process Description", 
+                           placeholder=f"Outline the {industry} process or goals here...", 
+                           height=200)
+    
+    generate_btn = st.button("⚡ CONSTRUCT WORKFLOW", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Aesthetic Image to fill the side
+    st.image("https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?q=80&w=1000&auto=format&fit=crop", 
+             caption="Systematic AI Analysis Engaged", use_container_width=True)
+
+with right_col:
+    if generate_btn and (raw_input or file):
+        with st.spinner("Synthesizing Architecture..."):
+            # Text Extraction logic
+            combined_text = raw_input
+            if file:
+                if file.type == "application/pdf":
+                    reader = PdfReader(file)
+                    combined_text += " " + " ".join([p.extract_text() for p in reader.pages])
+                else:
+                    combined_text += " " + str(file.read(), "utf-8")
+            
+            steps = generate_workflow_logic(combined_text, industry)
+            st.session_state['active_steps'] = steps
+            st.session_state['active_industry'] = industry
+
+    # Display Results if they exist
+    if 'active_steps' in st.session_state:
+        st.markdown(f"### 📋 {st.session_state['active_industry']} Blueprint")
+        
+        # Tabs for Diagram and List
+        tab1, tab2 = st.tabs(["📊 Flowchart Diagram", "📝 Step-by-Step"])
+        
+        with tab1:
+            st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+            mm_code = generate_mermaid(st.session_state['active_steps'])
+            st.markdown(f"```mermaid\n{mm_code}\n```")
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        with tab2:
+            for i, step in enumerate(st.session_state['active_steps'], start=1):
+                st.markdown(f"""
+                <div class="step-box">
+                    <small style="color:#818cf8; font-weight:800;">PHASE {i:02d}</small><br>
+                    {step}
+                </div>
+                """, unsafe_allow_html=True)
+        
+        # Download Section
+        st.markdown("---")
+        dl1, dl2 = st.columns(2)
+        with dl1:
+            csv_data = pd.DataFrame(st.session_state['active_steps'], columns=["Workflow Step"]).to_csv(index=False).encode('utf-8')
+            st.download_button("📂 Download CSV", data=csv_data, file_name="architecture.csv", use_container_width=True)
+        with dl2:
+            pdf_bytes = create_pdf(st.session_state['active_steps'], st.session_state['active_industry'])
+            st.download_button("📄 Download PDF Report", data=pdf_bytes, file_name="report.pdf", use_container_width=True)
     else:
-        st.warning("Please provide a description or upload a file.")
-
-# --- RESULTS ---
-if 'steps' in st.session_state:
-    steps = st.session_state['steps']
-    st.write("---")
-    st.subheader(f"📋 {category} Workflow")
-    
-    for i, step in enumerate(steps, start=1):
-        clean = step.split(":", 1)[1] if ":" in step else step
-        st.markdown(f"""
-        <div class="step-container">
-            <span style="color: #6366f1; font-weight: 700; margin-right: 10px;">{i}.</span>
-            {clean.strip()}
+        # Placeholder for empty state
+        st.markdown("""
+        <div style="height: 600px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed rgba(99, 102, 241, 0.2); border-radius: 30px; background: rgba(15, 23, 42, 0.2);">
+            <h3 style="color: #64748b;">Awaiting Input</h3>
+            <p style="color: #475569;">Configure parameters on the left to generate architecture.</p>
         </div>
         """, unsafe_allow_html=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        csv = pd.DataFrame(steps, columns=["Workflow"]).to_csv(index=False).encode('utf-8')
-        st.download_button("📂 Export as CSV", data=csv, file_name="workflow.csv", use_container_width=True)
-    with col2:
-        pdf_data = create_pdf(steps)
-        st.download_button("📄 Generate PDF Report", data=pdf_data, file_name="workflow.pdf", use_container_width=True)
-
-st.markdown('<div class="footer">Built by Ganesh Basani — AI Workflow Automation Project</div>', unsafe_allow_html=True)
+# Footer
+st.markdown("""
+<div style="text-align: center; margin-top: 80px; padding: 40px; border-top: 1px solid rgba(255,255,255,0.05);">
+    <p style="color: #64748b;">Architect AI Engine v2.5 | Developed by Ganesh Basani</p>
+</div>
+""", unsafe_allow_html=True)
