@@ -6,14 +6,18 @@ from workflow import generate_workflow
 
 # --- FUNCTIONS ---
 def extract_text(uploaded_file):
-    if uploaded_file.type == "application/pdf":
-        reader = PdfReader(uploaded_file)
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text()
-        return text
-    else:
-        return str(uploaded_file.read(), "utf-8")
+    try:
+        if uploaded_file.type == "application/pdf":
+            reader = PdfReader(uploaded_file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text()
+            return text
+        else:
+            return uploaded_file.getvalue().decode("utf-8")
+    except Exception as e:
+        st.error(f"Error reading file: {e}")
+        return ""
 
 def create_pdf(steps):
     pdf = FPDF()
@@ -36,137 +40,77 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
-/* Main Background */
-.stApp {
-    background: #020617;
-    font-family: 'Inter', sans-serif;
+.stApp { background: #020617; font-family: 'Inter', sans-serif; }
+.badge { display: flex; justify-content: center; margin-bottom: 20px; }
+.badge-content { 
+    background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); 
+    color: #818cf8; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: 500; 
 }
-
-/* Badge */
-.badge {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-.badge-content {
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    color: #818cf8;
-    padding: 5px 15px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-/* Titles */
-.main-title {
-    text-align: center;
-    font-size: 56px;
-    font-weight: 800;
+.main-title { 
+    text-align: center; font-size: 56px; font-weight: 800; 
     background: linear-gradient(to bottom, #ffffff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 10px;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; 
 }
-.architect-text {
-    color: #6366f1;
-    -webkit-text-fill-color: #6366f1;
-}
+.architect-text { color: #6366f1; -webkit-text-fill-color: #6366f1; }
+.main-subtitle { text-align: center; color: #94a3b8; font-size: 18px; margin-bottom: 40px; line-height: 1.6; }
 
-.main-subtitle {
-    text-align: center;
-    color: #94a3b8;
-    font-size: 18px;
-    margin-bottom: 40px;
-    line-height: 1.6;
-}
+/* Category Styling */
+.stSelectbox label { color: #818cf8 !important; font-weight: 600 !important; }
+div[data-baseweb="select"] { background-color: #0f172a !important; border-radius: 12px; }
 
-/* File Upload & Input Area */
-[data-testid="stFileUploader"] {
-    background: rgba(30, 41, 59, 0.4);
-    border: 1px dashed rgba(99, 102, 241, 0.3);
-    border-radius: 12px;
-    padding: 20px;
-}
+[data-testid="stFileUploader"] { background: rgba(30, 41, 59, 0.4); border: 1px dashed rgba(99, 102, 241, 0.3); border-radius: 12px; padding: 20px; }
+.stTextArea textarea { background: rgba(15, 23, 42, 0.8) !important; border: 1px solid #1e293b !important; color: #e2e8f0 !important; border-radius: 12px !important; }
+.stButton button { width: 100%; background: #6366f1 !important; color: white !important; border: none !important; padding: 12px !important; font-weight: 600 !important; border-radius: 12px !important; box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); transition: 0.3s; }
+.stButton button:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(99, 102, 241, 0.6); }
 
-.stTextArea textarea {
-    background: rgba(15, 23, 42, 0.8) !important;
-    border: 1px solid #1e293b !important;
-    color: #e2e8f0 !important;
-    border-radius: 12px !important;
-}
-
-/* Glowing Button */
-.stButton button {
-    width: 100%;
-    background: #6366f1 !important;
-    color: white !important;
-    border: none !important;
-    padding: 12px !important;
-    font-weight: 600 !important;
-    border-radius: 12px !important;
-    box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-    transition: 0.3s;
-}
-.stButton button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
-}
-
-/* Workflow Steps */
-.step-container {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid #1e293b;
-    border-left: 4px solid #6366f1;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    animation: fadeIn 0.6s ease forwards;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.footer {
-    text-align: center;
-    color: #64748b;
-    margin-top: 50px;
-    font-size: 14px;
-}
+.step-container { background: rgba(15, 23, 42, 0.6); border: 1px solid #1e293b; border-left: 4px solid #6366f1; border-radius: 12px; padding: 16px; margin-bottom: 12px; animation: fadeIn 0.6s ease forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.footer { text-align: center; color: #64748b; margin-top: 50px; font-size: 14px; }
 </style>
 
 <div class="badge"><div class="badge-content">⚙️ AI-Powered Workflows</div></div>
 <div class="main-title"><span class="architect-text">Architect</span> AI</div>
-<div class="main-subtitle">Transform your ideas into structured, actionable workflows<br>with the power of artificial intelligence.</div>
+<div class="main-subtitle">Select a domain and transform ideas into actionable workflows.</div>
 """, unsafe_allow_html=True)
 
 # --- APP CONTENT ---
-uploaded_file = st.file_uploader("", type=["pdf", "txt"])
+
+# New Category Feature
+category = st.selectbox(
+    "Choose Industry/Sector",
+    ["Educational Institutes", "Business Organizations", "Real Estate", "Software Industries", "Software Projects", "Hospitals"]
+)
+
+uploaded_file = st.file_uploader("Optional: Upload context file (PDF/TXT)", type=["pdf", "txt"])
 
 user_input = st.text_area(
     "",
-    placeholder="Describe the workflow you want to generate (e.g. 'Customer onboarding for SaaS analytics')",
+    placeholder=f"Describe the specific {category} workflow you need...",
     height=100
 )
 
 if st.button("⚡ Generate Workflow"):
-    final_input = ""
-    if uploaded_file:
-        final_input = extract_text(uploaded_file)
+    # Combine Category + Text + File content to prevent "Not Detected" errors
+    file_content = extract_text(uploaded_file) if uploaded_file else ""
+    
+    # Constructing a structured prompt
+    full_prompt = f"Category: {category}\nContext: {user_input}\nAdditional Info: {file_content}"
+    
+    if user_input.strip() or file_content.strip():
+        with st.spinner(f"Architecting {category} workflow..."):
+            steps = generate_workflow(full_prompt)
+            if steps:
+                st.session_state['steps'] = steps
+            else:
+                st.error("The workflow engine returned no results. Please check your workflow.py logic.")
     else:
-        final_input = user_input
-
-    if final_input:
-        with st.spinner("Thinking..."):
-            steps = generate_workflow(final_input)
-            st.session_state['steps'] = steps
+        st.warning("Please provide a description or upload a file.")
 
 # --- RESULTS ---
 if 'steps' in st.session_state:
     steps = st.session_state['steps']
     st.write("---")
+    st.subheader(f"📋 {category} Workflow")
     
     for i, step in enumerate(steps, start=1):
         clean = step.split(":", 1)[1] if ":" in step else step
@@ -177,7 +121,6 @@ if 'steps' in st.session_state:
         </div>
         """, unsafe_allow_html=True)
 
-    # Export Buttons (Side by Side)
     col1, col2 = st.columns(2)
     with col1:
         csv = pd.DataFrame(steps, columns=["Workflow"]).to_csv(index=False).encode('utf-8')
@@ -186,9 +129,4 @@ if 'steps' in st.session_state:
         pdf_data = create_pdf(steps)
         st.download_button("📄 Generate PDF Report", data=pdf_data, file_name="workflow.pdf", use_container_width=True)
 
-# Footer
-st.markdown("""
-<div class="footer">
-    Built by Ganesh Basani — AI Workflow Automation Project
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<div class="footer">Built by Ganesh Basani — AI Workflow Automation Project</div>', unsafe_allow_html=True)
