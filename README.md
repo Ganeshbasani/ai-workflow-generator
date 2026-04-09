@@ -1,172 +1,129 @@
+<h1 align="center">🤖 AI-Driven Dynamic Workflow Generator</h1>
+<h3 align="center">Transform Natural Language into Structured Workflows 🚀</h3>
 
---> AI-DRIVEN DYNAMIC WORKFLOW GENERATOR  <--
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/834efbf3-e2db-4db9-a3d2-56cad13f90e3" alt="AI Workflow Generator UI" width="90%" />
+</p>
 
-A modern application that converts **natural language descriptions** into **structured, step-by-step workflows**.
-Built using **Python and Streamlit**, with a **custom HTML/CSS embedded UI** for a clean, professional experience.
-
----
-
-1. OVERVIEW
-
-This project allows users to describe a process in plain English (business, IT, or education workflows), and automatically generates a structured workflow.
-
-The project demonstrates:
-
-* Rule-based workflow generation
-* Sentence parsing and keyword detection
-* Clean UI design using HTML & CSS
-* Scalable handling of large workflow inputs
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-Backend-blue?style=for-the-badge&logo=python"/>
+  <img src="https://img.shields.io/badge/Streamlit-App-red?style=for-the-badge&logo=streamlit"/>
+  <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge"/>
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge"/>
+</p>
 
 ---
 
-2. FEATURES
-
-* Converts natural language into workflow steps
-* Supports Business, IT, and Education domains
-* Handles small to large workflow descriptions
-* Deduplication of repeated steps
-* Basic conditional handling (example: failed payment)
-* Modern dark-themed UI inspired by SaaS dashboards
-* Runs and deploys on Streamlit Cloud
+## 📌 Overview  
+The **AI-Driven Dynamic Workflow Generator** converts natural language descriptions into structured workflows. Users can describe any process (Business, IT, Education), and the system automatically generates step-by-step workflows using intelligent rule-based logic. Designed to simulate AI-style reasoning with scalable backend processing and a modern UI.
 
 ---
 
-3. TECH STACK
-
-Frontend (UI):
-
-* HTML & CSS (embedded inside Streamlit)
-
-Application:
-
-* Python
-
-Framework:
-
-* Streamlit
-
-Logic:
-
-* Rule-based workflow engine
-
-Deployment:
-
-* Streamlit Cloud
-
-Version Control:
-
-* Git & GitHub
+## ✨ Features  
+- 🚀 Convert plain English → structured workflows  
+- 🧠 Rule-based intelligent workflow engine  
+- 📊 Supports Business, IT & Education domains  
+- 🔁 Automatic duplicate step removal  
+- ⚡ Handles small to enterprise-scale workflows  
+- 🎯 Basic conditional logic (e.g., failed payment)  
+- 🎨 Modern dark UI (HTML + CSS embedded)  
+- 🌐 One-click deployment via Streamlit Cloud  
 
 ---
 
-4. PROJECT STRUCTURE
-
-ai-workflow-generator/
-│
-├── app.py            → Streamlit app with embedded HTML & CSS
-├── workflow.py       → Workflow generation logic
-├── requirements.txt  → Python dependencies
-└── README.txt
-
----
-
-5. HOW THE SYSTEM WORKS
-
-1. User enters a process description in natural language
-2. Input text is split into sentences
-3. Each sentence is analyzed using keyword-based rules
-4. Relevant workflow steps are generated
-5. Duplicate steps are removed
-6. Final workflow steps are displayed as cards in the UI
-
-This simulates **AI-style reasoning using rule-based logic**.
+## 🧠 How It Works  
+User Input  
+⬇  
+Sentence Splitting  
+⬇  
+Keyword Detection  
+⬇  
+Rule-Based Processing  
+⬇  
+Generate Workflow Steps  
+⬇  
+Remove Duplicates  
+⬇  
+Display Output  
 
 ---
 
- EXAMPLE INPUT
-
-Customer registers.
-Places order.
-Makes payment.
-Generate invoice.
-
----
-
- EXPECTED OUTPUT
-
-Step 1: Register customer
-Step 2: Save data to database
-Step 3: Process customer order
-Step 4: Process payment
-Step 5: Generate invoice
+## ⚙️ Tech Stack  
+| Layer         | Technology                        |
+|--------------|----------------------------------|
+| 🖥️ Frontend  | HTML, CSS (Embedded in Streamlit) |
+| ⚙️ Backend   | Python                           |
+| 🚀 Framework | Streamlit                        |
+| 🧠 Logic     | Rule-Based Engine                |
+| 🌐 Deployment| Streamlit Cloud                  |
+| 🔧 Tools     | Git, GitHub                      |
 
 ---
 
-6. TEST DATASETS
-
-The project has been tested using:
-
-* Small workflows (3–5 steps)
-* Medium workflows (10–15 steps)
-* Large enterprise workflows (20+ steps)
-* Single-domain and multi-domain inputs
-
-This ensures correctness and scalability.
+## 📂 Project Structure  
+ai-workflow-generator/  
+│── app.py              # Main Streamlit app  
+│── workflow.py         # Workflow logic engine  
+│── requirements.txt    # Dependencies  
+│── README.md  
 
 ---
 
-7. UI DESIGN
+## 🧪 Example  
+### 📝 Input  
+Customer registers. Places order. Makes payment. Generate invoice.  
 
-* Dark gradient background
-* Card-based workflow steps
-* Clear visual hierarchy
-* HTML & CSS embedded inside Streamlit
-* No external HTML or CSS files
-
----
-
-8. HOW TO RUN LOCALLY
-
-1. Clone the repository:
-   git clone : https://ai-workflow-generator-cysztisfr9rbs8ro7fcuuw.streamlit.app/
-
-2. Navigate to the folder:
-   cd ai-workflow-generator
-
-3. Install dependencies:
-   pip install -r requirements.txt
-
-4. Run the app:
-   streamlit run app.py
+### ✅ Output  
+Step 1: Register customer  
+Step 2: Save data to database  
+Step 3: Process customer order  
+Step 4: Process payment  
+Step 5: Generate invoice  
 
 ---
 
-9. DEPLOYMENT
-
-The application is deployed using **Streamlit Cloud**.
-No additional server configuration is required.
-
----
-
-
-10. FUTURE ENHANCEMENTS
-
-* Flowchart visualization of workflows
-* Export workflow as PDF or text
-* Domain-based color tagging
-* Advanced NLP support
-* Workflow history storage
+## 🧪 Testing & Scalability  
+✔ Small workflows (3–5 steps)  
+✔ Medium workflows (10–15 steps)  
+✔ Large workflows (20+ steps)  
+✔ Multi-domain scenarios  
 
 ---
 
-11. AUTHOR
-
-  Ganesh Basani 
+## 🎨 UI Highlights  
+- Dark gradient modern UI  
+- SaaS-style layout  
+- Card-based workflow display  
+- Fully embedded HTML/CSS  
+- No external frontend dependencies  
 
 ---
+🌐 Live Demo
 
+🔗 https://ai-workflow-generator-cysztisfr9rbs8ro7fcuuw.streamlit.app/
 
-12.  LICENSE
+🔮 Future Enhancements
+📊 Workflow visualization (flowcharts)
+📄 Export workflows (PDF/Text)
+🎨 Domain-based color tagging
+🤖 NLP-based intelligent parsing
+🗂 Workflow history tracking
+👨‍💻 Author
 
-This project is open-source and intended for educational and learning purposes.
+Ganesh Basani
+📧 ganeshbasani43@gmail.com
 
+🔗 https://github.com/Ganeshbasani
+
+📜 License
+
+This project is open-source and intended for educational purposes.
+
+<h3 align="center">⭐ If you like this project, give it a star ⭐</h3>
+
+## ▶️ Run Locally  
+```bash
+git clone https://github.com/Ganeshbasani/ai-workflow-generator
+cd ai-workflow-generator
+pip install -r requirements.txt
+streamlit run app.py
