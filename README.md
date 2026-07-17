@@ -22,7 +22,7 @@ The **AI-Driven Dynamic Workflow Generator** converts natural language descripti
 ## ✨ Features  
 - 🚀 Convert plain English → structured workflows  
 - 🧠 Rule-based intelligent workflow engine  
-- 📊 Supports Business, IT & Education domains  
+- 📊 Supports Business, IT & Education domains
 - 🔁 Automatic duplicate step removal  
 - ⚡ Handles small to enterprise-scale workflows  
 - 🎯 Basic conditional logic (e.g., failed payment)  
