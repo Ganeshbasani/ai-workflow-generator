@@ -4,7 +4,7 @@ from fpdf import FPDF
 from pypdf import PdfReader
 from workflow import generate_workflow
 
-# --- FUNCTIONS ---
+# --- FUNCTIONS ---        
 def extract_text(uploaded_file):
     try:
         if uploaded_file.type == "application/pdf":
