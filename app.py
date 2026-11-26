@@ -497,6 +497,7 @@ with workflow_tab:
                 "Start with a process brief and Architect will map the steps, "
                 "dependencies, decisions, and points that need a human review."
             )
+            st.caption("Generate a workflow above to see its ordered steps and flowchart here.")
             st.button(
                 "Create your first workflow",
                 type="primary",

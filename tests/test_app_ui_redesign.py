@@ -22,7 +22,10 @@ def _generated_app() -> AppTest:
     at = _loaded_app()
     at.text_area[0].set_value(DESCRIPTION)
     at.run()
-    at.button[0].click().run()
+    generate_button = next(
+        button for button in at.button if button.key == "generate_workflow"
+    )
+    generate_button.click().run()
     assert not at.error
     assert not at.exception
     return at
@@ -56,14 +59,15 @@ def test_preferences_persist_via_segmented_controls() -> None:
     assert not at.error
 
 
-def test_in_app_toggles_do_not_add_widgets_to_the_base_layout() -> None:
+def test_preferences_remain_separate_from_workflow_actions() -> None:
     at = _loaded_app()
 
-    # The theme/density toggles are segmented controls, not selectboxes, so the
-    # legacy category selectbox stays at index zero.
+    # Theme and density controls should not replace the brief's category or text field.
     assert len(at.selectbox) == 1
     assert len(at.text_area) == 1
-    assert len(at.button) == 1
+    button_keys = {button.key for button in at.button}
+    assert "generate_workflow" in button_keys
+    assert {"starter_0", "starter_1", "starter_2"} <= button_keys
 
 
 def test_generation_fires_a_toast() -> None:
@@ -111,14 +115,15 @@ def test_analytics_dashboard_renders_metrics_and_charts() -> None:
     assert not at.error
 
 
-def test_domain_change_produces_a_domain_labelled_title() -> None:
+def test_domain_change_produces_a_domain_aware_workflow() -> None:
     at = _loaded_app()
     at.selectbox[0].set_value("Hospitals")
     at.text_area[0].set_value("book an appointment and process the order")
     at.run()
-    at.button[0].click().run()
+    next(button for button in at.button if button.key == "generate_workflow").click().run()
 
-    assert at.subheader[0].value == "📋 Hospitals Workflow"
+    assert at.subheader[0].value == "Book an appointment"
+    assert any(metric.label == "Domain" and metric.value == "hospital" for metric in at.metric)
 
 
 def test_empty_state_captions_are_shown_in_each_workspace() -> None:
