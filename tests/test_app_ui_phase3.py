@@ -7,6 +7,7 @@ SQLite file, so no test writes a real ``workflows.db`` into the repository.
 
 from __future__ import annotations
 
+import html
 import re
 import warnings
 from pathlib import Path
@@ -35,18 +36,17 @@ def _generated_app() -> AppTest:
 def _step_cards(at: AppTest) -> list[str]:
     """Return the visible text of rendered step cards, in display order.
 
-    The leading ``1.``/``2.`` counter is removed so reorder assertions compare
-    titles rather than positions. Any status chip is intentionally retained.
+    Strip the current card markup so reorder assertions compare rendered copy,
+    independent of the card's position badge and HTML layout.
     """
     cards: list[str] = []
     for item in at.markdown:
-        if item.value.startswith('<div class="step-container">'):
-            text = re.sub(
-                r'^<div class="step-container"><span[^>]*>\d+\.</span>',
-                "",
-                item.value,
+        if item.value.startswith('<div class="awg-card">'):
+            without_position = re.sub(
+                r'<span class="awg-step-number">.*?</span>', "", item.value
             )
-            cards.append(text.replace("</div>", ""))
+            text = re.sub(r"<[^>]+>", " ", without_position)
+            cards.append(" ".join(html.unescape(text).split()))
     return cards
 
 
@@ -60,7 +60,7 @@ def test_generation_creates_a_saved_history_entry() -> None:
 
     picker = at.get_by_key("saved_project_picker")
     assert len(picker.options) == 1
-    assert "Business Organizations Workflow" in picker.options[0]
+    assert "Customer registers" in picker.options[0]
     for key in ("load_project", "rename_project", "delete_project"):
         assert at.get_by_key(key) is not None
     assert not any("No saved workflows yet" in c.value for c in at.caption)
@@ -85,7 +85,7 @@ def test_history_load_restores_results_after_session_reset() -> None:
 
     at.get_by_key("load_project").click().run()
 
-    assert at.subheader[0].value == "📋 Business Organizations Workflow"
+    assert at.subheader[0].value == "Customer registers"
     assert len(at.get("download_button")) == 5
     assert len(_step_cards(at)) == 4
 
@@ -112,7 +112,7 @@ def test_history_survives_an_app_restart() -> None:
 
     assert len(restarted.get_by_key("saved_project_picker").options) == 1
     restarted.get_by_key("load_project").click().run()
-    assert restarted.subheader[0].value == "📋 Business Organizations Workflow"
+    assert restarted.subheader[0].value == "Customer registers"
 
 
 # ---------------------------------------------------------------------------
