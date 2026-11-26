@@ -1,0 +1,21 @@
+# Normalise text files in the repository to LF; keep binaries untouched.
+* text=auto
+
+*.py    text eol=lf
+*.md    text eol=lf
+*.txt   text eol=lf
+*.toml  text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.json  text eol=lf
+*.csv   text eol=lf
+Dockerfile    text eol=lf
+Makefile      text eol=lf
+.gitattributes text eol=lf
+
+*.png binary
+*.jpg binary
+*.gif binary
+*.ttf binary
+*.otf binary
+*.db  binary

@@ -1,4 +1,12 @@
-streamlit
-pandas
-fpdf2
-pypdf
+# Pinned runtime dependencies for the FastAPI + React production app.
+fpdf2==2.9.0
+pypdf==7.1.1
+# Phase 1 — typed models and configuration
+pydantic==2.14.4
+pydantic-settings==2.16.3
+# Phase 2 — OpenAI-compatible provider (OpenAI / Groq / OpenRouter / Ollama)
+openai==3.57.0
+# Phase 5 — versioned HTTP API (uvicorn api:app)
+fastapi==0.165.0
+python-multipart==0.0.34
+uvicorn==0.54.0

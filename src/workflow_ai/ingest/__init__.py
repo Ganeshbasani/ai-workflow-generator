@@ -1,0 +1,5 @@
+"""Document ingestion helpers."""
+
+from .documents import extract_text
+
+__all__ = ["extract_text"]

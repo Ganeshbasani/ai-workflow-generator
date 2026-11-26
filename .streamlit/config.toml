@@ -1,0 +1,60 @@
+# Architect AI — dual light/dark native theme.
+# Streamlit's built-in appearance toggle (Settings → Appearance, or the app's
+# in-app segmented control) switches between [theme.light] and [theme.dark].
+# Colors mirror src/workflow_ai/ui/theme.py and src/workflow_ai/diagram.py.
+
+[theme]
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+headingFont = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@600;700&display=swap"
+baseRadius = "0.75rem"
+buttonRadius = "0.75rem"
+showWidgetBorder = true
+showSidebarBorder = true
+
+[theme.light]
+primaryColor = "#4F46E5"
+backgroundColor = "#F6F7FB"
+secondaryBackgroundColor = "#EDEFF7"
+textColor = "#171A2B"
+linkColor = "#4F46E5"
+borderColor = "#D9DDEA"
+greenColor = "#0E9F6E"
+yellowColor = "#B45309"
+redColor = "#C4323F"
+violetColor = "#4F46E5"
+dataframeBorderColor = "#D9DDEA"
+dataframeHeaderBackgroundColor = "#EDEFF7"
+dataframeHeaderTextColor = "#171A2B"
+chartCategoricalColors = ["#4F46E5", "#0E9F6E", "#B45309", "#C4323F", "#7C3AED", "#0891B2", "#DB2777"]
+chartSequentialColors = ["#EEF2FF", "#E0E7FF", "#C7D2FE", "#A5B4FC", "#818CF8", "#6366F1", "#4F46E5", "#4338CA", "#3730A3", "#312E81"]
+
+[theme.light.sidebar]
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#EDEFF7"
+textColor = "#171A2B"
+primaryColor = "#4F46E5"
+borderColor = "#D9DDEA"
+
+[theme.dark]
+primaryColor = "#8B7DFF"
+backgroundColor = "#0B1020"
+secondaryBackgroundColor = "#1E2740"
+textColor = "#EAEEFA"
+linkColor = "#A79BFF"
+borderColor = "#2C3752"
+greenColor = "#3DD68C"
+yellowColor = "#F5B544"
+redColor = "#FF7183"
+violetColor = "#8B7DFF"
+dataframeBorderColor = "#2C3752"
+dataframeHeaderBackgroundColor = "#1E2740"
+dataframeHeaderTextColor = "#EAEEFA"
+chartCategoricalColors = ["#8B7DFF", "#3DD68C", "#F5B544", "#FF7183", "#A78BFA", "#22D3EE", "#F472B6"]
+chartSequentialColors = ["#1B2340", "#232D50", "#2C3865", "#37447A", "#455392", "#5666A8", "#6C7CC0", "#8493D4", "#A0ACE3", "#BBC4EF"]
+
+[theme.dark.sidebar]
+backgroundColor = "#151C31"
+secondaryBackgroundColor = "#1E2740"
+textColor = "#EAEEFA"
+primaryColor = "#8B7DFF"
+borderColor = "#2C3752"
