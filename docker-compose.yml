@@ -1,0 +1,41 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY:-}
+        VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST:-https://us.i.posthog.com}
+    image: ai-workflow-generator:local
+    ports:
+      - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8765}:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      DATABASE_PATH: /data/workflows.db
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      REQUEST_TIMEOUT_SECONDS: ${REQUEST_TIMEOUT_SECONDS:-20}
+      OLLAMA_REQUEST_TIMEOUT_SECONDS: ${OLLAMA_REQUEST_TIMEOUT_SECONDS:-240}
+      OLLAMA_MAX_OUTPUT_TOKENS: ${OLLAMA_MAX_OUTPUT_TOKENS:-1000}
+      OLLAMA_CONTEXT_TOKENS: ${OLLAMA_CONTEXT_TOKENS:-4096}
+      TEMPERATURE: ${TEMPERATURE:-0}
+      MAX_REPAIR_RETRIES: ${MAX_REPAIR_RETRIES:-2}
+      RETRY_BACKOFF_SECONDS: ${RETRY_BACKOFF_SECONDS:-0.5}
+      MAX_REQUESTS_PER_SESSION: ${MAX_REQUESTS_PER_SESSION:-100}
+      DAILY_COST_CEILING_USD: ${DAILY_COST_CEILING_USD:-1.0}
+      MAX_INPUT_CHARS: ${MAX_INPUT_CHARS:-4000}
+      MAX_CONTEXT_CHARS: ${MAX_CONTEXT_CHARS:-20000}
+      MAX_OUTPUT_TOKENS: ${MAX_OUTPUT_TOKENS:-2000}
+      MAX_PROMPT_TOKENS: ${MAX_PROMPT_TOKENS:-6000}
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-5242880}
+      MAX_PDF_PAGES: ${MAX_PDF_PAGES:-50}
+    volumes:
+      - workflow-data:/data
+    init: true
+    stop_grace_period: 15s
+
+volumes:
+  workflow-data:
+    name: architect-workflow-data

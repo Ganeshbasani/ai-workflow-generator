@@ -1,0 +1,41 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets — never commit these
+.env
+.streamlit/secrets.toml
+*.pem
+
+# Local SQLite database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Test / tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Distribution / build
+build/
+dist/
+*.egg-info/
+node_modules/
+web/tsconfig.tsbuildinfo
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
