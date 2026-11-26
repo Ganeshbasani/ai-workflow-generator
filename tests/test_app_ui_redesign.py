@@ -106,10 +106,10 @@ def test_analytics_dashboard_renders_metrics_and_charts() -> None:
     assert len(at.metric) == 8  # empty state still shows all KPI cards
 
     at = _generated_app()
-    values = [metric.value for metric in at.metric]
+    values = {metric.label: metric.value for metric in at.metric}
 
-    assert values[0] == "1"  # workflows
-    assert values[1] == "4"  # steps
+    assert values["Workflows"] == "1"
+    assert values["Steps"] == "4"
     assert len(at.get("vega_lite_chart")) >= 3
     assert len(at.get("dataframe")) >= 2
     assert not at.error

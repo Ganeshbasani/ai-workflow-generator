@@ -26,7 +26,7 @@ def _generated_app() -> AppTest:
     at = AppTest.from_file(APP_PATH, default_timeout=30).run()
     at.text_area[0].set_value(DESCRIPTION)
     at.run()
-    at.button[0].click().run()
+    at.get_by_key("generate_workflow").click().run()
     assert not at.error
     assert not at.exception
     assert at.subheader

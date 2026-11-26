@@ -26,7 +26,7 @@ def _generated_app() -> AppTest:
     at.selectbox[0].set_value("Business Organizations")
     at.text_area[0].set_value(DESCRIPTION)
     at.run()
-    at.button[0].click().run()
+    at.get_by_key("generate_workflow").click().run()
     assert not at.error
     assert at.subheader
     return at
