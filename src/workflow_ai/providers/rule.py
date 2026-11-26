@@ -424,7 +424,9 @@ class RuleProvider:
                         decision_condition = _decision_condition_from_source(previous_source)
                         if not decision_condition:
                             decision_condition = (
-                                f"Outcome of {previous.title}" if previous else "Previous step outcome"
+                                f"Outcome of {previous.title}"
+                                if previous
+                                else "Previous step outcome"
                             )
                             warnings.append(
                                 "A yes/no path had no explicit decision criterion. "
